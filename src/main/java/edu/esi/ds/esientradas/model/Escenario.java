@@ -7,16 +7,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-
+// jakarta es una clase de javax, pero con un nuevo nombre
 @Entity
 public class Escenario {
-    @Id @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY) // para que se genere automaticamente el id
     private Long id;
     private String nombre;
     private String descripcion;
     
-    @OneToMany(mappedBy = "escenario")
-    private List<Espectaculo> espectaculos = new ArrayList<>();
+    @OneToMany(mappedBy = "escenario") // mappedBy indica que la relación es bidireccional y que el lado propietario es Espectaculo
+    private List<Espectaculo> espectaculos = new ArrayList<>(); // para evitar nullpointerexception
 
     public Long getId() {
         return id;
