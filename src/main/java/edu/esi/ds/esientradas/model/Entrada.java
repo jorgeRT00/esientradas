@@ -11,12 +11,15 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Entrada {
-    @Id @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     protected Long id;
-    private Long precio;     // Ojo: en céntimos de euro
+    private Long precio; // Ojo: en céntimos de euro
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "espectaculo_id", nullable = false)
@@ -28,24 +31,32 @@ public abstract class Entrada {
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
+
+    @JsonIgnore
     public Espectaculo getEspectaculo() {
         return espectaculo;
     }
+
     public void setEspectaculo(Espectaculo espectaculo) {
         this.espectaculo = espectaculo;
     }
+
     public Estado getEstado() {
         return estado;
     }
+
     public void setEstado(Estado estado) {
         this.estado = estado;
     }
+
     public Long getPrecio() {
         return precio;
     }
+
     public void setPrecio(Long precio) {
         this.precio = precio;
     }
