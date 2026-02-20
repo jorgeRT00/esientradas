@@ -6,9 +6,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import edu.esi.ds.esientradas.dto.DtoEspectaculo;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.services.BusquedaService;
 import java.util.List;
+import edu.esi.ds.esientradas.model.Espectaculo;
+import edu.esi.ds.esientradas.model.Entrada;
+
+
 
 @RestController
 @RequestMapping("/busqueda")
@@ -16,6 +21,29 @@ public class BusquedaController {
 
     @Autowired
     private BusquedaService service;
+
+    @GetMapping("/getEntradas")
+    public List<Entrada> getEntradas(@RequestParam String espectaculoId) {
+        // aqui se haria la logica para obtener las entradas de la base de datos
+        return this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
+
+    }
+
+    @GetMapping("/getEspectaculos")
+    public List<DtoEspectaculo> getEspectaculos(@RequestParam String artista) {
+        //
+        List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los espectaculos
+
+        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
+            DtoEspectaculo dto = new DtoEspectaculo();
+            dto.setId(e.getId());
+            dto.setArtista(e.getArtista());
+            dto.setFecha(e.getFecha());
+            dto.setEscenario(e.getEscenario().getNombre());
+            return dto;
+        }).toList();
+        return dtos;
+    }
 
     @GetMapping("/getEscenarios")
     public List<Escenario> getEscenarios() {
