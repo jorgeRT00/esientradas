@@ -15,9 +15,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Espectaculo {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String artista;
     private LocalDateTime fecha;
@@ -62,6 +64,7 @@ public class Espectaculo {
         this.escenario = escenario;
     }
 
+    @JsonIgnore
     public List<Entrada> getEntradas() {
         return entradas;
     }
