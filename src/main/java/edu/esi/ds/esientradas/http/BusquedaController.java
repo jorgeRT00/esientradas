@@ -14,8 +14,8 @@ import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
 
 
-
-@RestController
+@RestController /* Le dice a Spring que esta clase es un controlador REST, y que debe ser gestionada por el contenedor de Spring. 
+                Un controlador REST es una clase que se encarga de manejar las peticiones HTTP que llegan a la aplicación, y de devolver las respuestas HTTP correspondientes. */
 @RequestMapping("/busqueda")
 public class BusquedaController {
 
