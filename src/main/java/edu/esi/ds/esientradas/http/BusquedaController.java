@@ -23,7 +23,7 @@ public class BusquedaController {
     private BusquedaService service;
 
     @GetMapping("/getEntradas")
-    public List<Entrada> getEntradas(@RequestParam String espectaculoId) {
+    public List<Entrada> getEntradas(@RequestParam Long espectaculoId) {
         // aqui se haria la logica para obtener las entradas de la base de datos
         return this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
 
@@ -31,7 +31,7 @@ public class BusquedaController {
 
     @GetMapping("/getEspectaculos")
     public List<DtoEspectaculo> getEspectaculos(@RequestParam String artista) {
-        //
+        
         List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los espectaculos
 
         List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
