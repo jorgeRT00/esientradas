@@ -16,16 +16,16 @@ public class BusquedaService {
 
     @Autowired
     private EscenarioDao escenarioDao;
-    
+
     @Autowired
     private EscpectaculoDao espectaculoDao;
 
     @Autowired
     private EntradaDao entradaDao;
 
-    public List<Entrada> getEntradas(String espectaculoId) {
+    public List<Entrada> getEntradas(Long espectaculoId) {
         // aqui se haria la logica para obtener las entradas de la base de datos
-        return this.entradaDao.findByEspectaculoId(Long.parseLong(espectaculoId)); // se devuelve la lista de entradas obtenida del DAO
+        return this.entradaDao.findByEspectaculoId(espectaculoId); // se devuelve la lista de entradas obtenida del DAO
     }
 
     public List<Escenario> getEscenarios() {
@@ -37,6 +37,5 @@ public class BusquedaService {
         // aqui se haria la logica para obtener los espectaculos de la base de datos
         return this.espectaculoDao.findByArtista(artista); // se devuelve la lista de espectaculos obtenida del DAO
     }
-
 
 }
