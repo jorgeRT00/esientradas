@@ -13,7 +13,7 @@ public interface EntradaDao extends JpaRepository<Entrada, Long> {
     
     List<Entrada> findByEspectaculoId(Long espectaculoId);
 
-    @Query(value = "UPDATE Entrada e SET e.estado = :estado WHERE e.id = :entradaId")
+    @Query(value = "UPDATE Entrada e SET e.estado = :estado WHERE e.id = :entradaId") // Consulta JPQL para actualizar el estado de una entrada
     @Modifying
-    void updateEstado(@Param("entradaId") Long entradaId, @Param("estado") Estado estado);
+    void updateEstado(@Param("entradaId") Long entradaId, @Param("estado") Estado estado); // Método para actualizar el estado de una entrada
 }
