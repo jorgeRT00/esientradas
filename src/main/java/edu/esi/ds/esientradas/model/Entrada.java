@@ -32,14 +32,15 @@ public abstract class Entrada { /* Clase abstracta: no se pueden crear instancia
     protected Estado estado;
 
     // Relación One-to-One con Token: una entrada puede tener 0 o 1 token de reserva.
-    @OneToOne(fetch = FetchType.LAZY, optional = true, cascade = CascadeType.ALL, orphanRemoval = true) /* Relación One-to-One con Token: una entrada puede tener 0 o 1 token.
-                                                                                  FetchType.LAZY: el token se cargará de la base de datos solo cuando se acceda a él, no cuando se cargue la entrada.
+    @OneToOne(optional = true, cascade = CascadeType.ALL, orphanRemoval = true) /* Relación One-to-One con Token: una entrada puede tener 0 o 1 token.
                                                                                   optional = true: el token es opcional, puede ser null (si la entrada no tiene token de reserva).
                                                                                   cascade = CascadeType.ALL: si se elimina la entrada, se elimina el token.
+                                                                                                             si se añade una entrada, se añade el token asociado (si lo tiene).
+                                                                                                             si se actualiza la entrada, se actualiza el token asociado (si lo tiene
                                                                                   orphanRemoval = true: si se elimina el token de la entrada, se elimina de la BD. */
     @JoinColumn(name = "token_valor", nullable = true) /* La columna que representa la relación se llamará "token_valor" y es nullable (puede ser null). */
-    protected Token tokenReserva; /* Este campo se usará para almacenar el token de reserva asociado a esta entrada, si es que tiene uno. Si la entrada no tiene token de reserva, este campo será null. */
-    // -
+    protected Token tokenReserva; /* Este campo se usará para almacenar el token de reserva asociado a esta entrada, si es que tiene uno. */
+
 
     public Long getId() {
         return id;

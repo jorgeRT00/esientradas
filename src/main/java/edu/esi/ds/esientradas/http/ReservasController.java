@@ -17,9 +17,9 @@ public class ReservasController {
 
     @PutMapping("/reservar") // PUT PORQUE SE VA A MODIFICAR EL ESTADO DE LA ENTRADA EN LA BASE DE DATOS, Y SE VA A ACUMULAR EL PRECIO DE LA ENTRADA RESERVADA EN LA SESIÓN
     public Long reservar(HttpSession session, @RequestParam Long idEntrada) { // @RequestParam le dice a Spring que el valor del parámetro hay que sacarlo del ? de la url
-        Long precioEntrada = this.service.reservar(idEntrada); // Punto de depuración aquí para probar con 1 entrada. Prueba en Bruno
-        Long precioTotal = (Long) session.getAttribute("precioTotal"); // se obtiene el precio total de la sesión, que se ha ido acumulando con las reservas anteriores
-                                                                            // Almacenar memoria pequeña, si no peto el servidor
+        Long precioEntrada = this.service.reservar(idEntrada, session.getId()); // Punto de depuración aquí para probar con 1 entrada. Prueba en Bruno
+        
+        Long precioTotal = (Long) session.getAttribute("precioTotal"); // se obtiene el precio total de la sesión, que se ha ido acumulando con las reservas anteriores                                                                   // Almacenar memoria pequeña, si no peto el servidor
         if (precioTotal == null) {  // si el precio total es null, se inicializa a 0
             precioTotal = precioEntrada; // si el precio total es null, se inicializa al precio de la entrada reservada
             session.setAttribute("precioTotal", precioTotal); // se almacena el precio total en la sesión, para que esté disponible en las siguientes reservas
