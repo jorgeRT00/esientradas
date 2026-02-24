@@ -2,7 +2,7 @@ package edu.esi.ds.esientradas.dto;
 
 public class DtoEntrada {
     private Long id;
-    private double precio;
+    private Long precio;
     private String espectaculo;
 
     public Long getId() {
@@ -13,12 +13,12 @@ public class DtoEntrada {
         this.id = id;
     }
 
-    public double getPrecio() {
+    public Long getPrecio() {
         return precio;
     }
 
     public void setPrecio(double precio) {
-        this.precio = precio;
+        this.precio = (long) precio;
     }
 
     public String getEspectaculo() {

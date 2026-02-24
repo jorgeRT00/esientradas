@@ -25,7 +25,7 @@ public class BusquedaController {
     private BusquedaService service;
 
     @GetMapping("/getEntradas") // IMPLEMENTADO POR DIEGO. 
-    public List<DtoEntrada> getEntradas(@RequestParam String espectaculoId) {
+    public List<DtoEntrada> getEntradas(@RequestParam Long espectaculoId) {
 
         List<Entrada> entradas = this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
         

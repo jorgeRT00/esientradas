@@ -25,10 +25,9 @@ public class BusquedaService {
     @Autowired
     private EntradaDao entradaDao;
 
-    public List<Entrada> getEntradas(String espectaculoId) {
+    public List<Entrada> getEntradas(Long espectaculoId) {
         // aqui se haria la logica para obtener las entradas de la base de datos
-        return this.entradaDao.findByEspectaculoId(Long.parseLong(espectaculoId)); // se devuelve la lista de entradas obtenida del DAO
-                // Long.parseLong(espectaculoId) se utiliza para convertir el String espectaculoId a un Long, ya que el método findByEspectaculoId espera un Long como parámetro.
+        return this.entradaDao.findByEspectaculoId(espectaculoId); // se devuelve la lista de entradas obtenida del DAO
     }
 
     public List<Escenario> getEscenarios() {
@@ -40,6 +39,4 @@ public class BusquedaService {
         // aqui se haria la logica para obtener los espectaculos de la base de datos
         return this.espectaculoDao.findByArtista(artista); // se devuelve la lista de espectaculos obtenida del DAO
     }
-
-
 }
