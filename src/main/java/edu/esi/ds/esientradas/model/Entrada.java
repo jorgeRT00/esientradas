@@ -10,7 +10,9 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.CascadeType;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -26,6 +28,10 @@ public abstract class Entrada {
 
     @Enumerated(EnumType.STRING)
     protected Estado estado;
+
+    @OneToOne(mappedBy = "entrada", cascade = CascadeType.ALL)
+    @JoinColumn(name = "token_valor", referencedColumnName = "valor")
+    protected Token token;
 
     public Long getId() {
         return id;
