@@ -16,24 +16,25 @@ import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
 
 
-
-@RestController
+@RestController /* Le dice a Spring que esta clase es un controlador REST, y que debe ser gestionada por el contenedor de Spring. 
+                Un controlador REST es una clase que se encarga de manejar las peticiones HTTP que llegan a la aplicación, y de devolver las respuestas HTTP correspondientes. */
 @RequestMapping("/busqueda")
 public class BusquedaController {
 
     @Autowired
     private BusquedaService service;
 
-    @GetMapping("/getEntradas")
+    @GetMapping("/getEntradas") // IMPLEMENTADO POR DIEGO. 
     public List<DtoEntrada> getEntradas(@RequestParam Long espectaculoId) {
-        // aqui se haria la logica para obtener las entradas de la base de datos
 
-        List<Entrada> entradas = this.service.getEntradas(espectaculoId);
-        List<DtoEntrada> dtosEntradas = entradas.stream().map(e -> {
+        List<Entrada> entradas = this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
+        
+        List<DtoEntrada> dtosEntradas = entradas.stream().map(e -> { // Creada clase DtoEntrada para devolver solo los datos necesarios de la entrada, 
+        //                                                              y no toda la información de la entrada (como el espectaculo completo, que puede ser muy grande)
             DtoEntrada dto = new DtoEntrada();
             dto.setId(e.getId());
-            dto.setEspectaculo(e.getEspectaculo().getArtista());
             dto.setPrecio(e.getPrecio());
+            dto.setEspectaculo(e.getEspectaculo().getArtista());
             return dto;
         }).toList();
 
@@ -68,5 +69,3 @@ public class BusquedaController {
     }
 
 }
-
-"hola"
