@@ -11,10 +11,12 @@ import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EscpectaculoDao;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 
-@Service
+@Service /* Le dice a Spring que esta clase es un servicio, y que debe ser gestionada por el contenedor de Spring. 
+                Un servicio es una clase que contiene la lógica de negocio de la aplicación, y que se encarga de interactuar con los DAOs para obtener los datos de la base de datos. */
 public class BusquedaService {
 
-    @Autowired
+    @Autowired /* Le dice a Spring que inyecte una instancia de EscenarioDao en esta clase. 
+                Spring buscará una clase que implemente la interfaz EscenarioDao, y creará una instancia de esa clase para inyectarla en esta clase. */
     private EscenarioDao escenarioDao;
 
     @Autowired
@@ -37,5 +39,4 @@ public class BusquedaService {
         // aqui se haria la logica para obtener los espectaculos de la base de datos
         return this.espectaculoDao.findByArtista(artista); // se devuelve la lista de espectaculos obtenida del DAO
     }
-
 }

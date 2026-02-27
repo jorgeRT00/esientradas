@@ -9,8 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-// jakarta es una clase de javax, pero con un nuevo nombre
-@Entity
+// jakarta es el estandar que proporciona anotaciones para las aplicaciones. Propociona @Entity, @Id, @OneToMany... */
+@Entity /* Le dice a Hibernate que esta clase es una tabla en la BD */
 public class Escenario {
     @Id @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY) // para que se genere automaticamente el id
     private Long id;

@@ -2,7 +2,7 @@ package edu.esi.ds.esientradas.model;
 
 import jakarta.persistence.Entity;
 
-@Entity
+@Entity /* Creará tabla DeZona en MySQL */
 public class DeZona extends Entrada {
     private Integer zona;
 

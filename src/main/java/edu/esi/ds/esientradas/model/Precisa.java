@@ -4,7 +4,7 @@ package edu.esi.ds.esientradas.model;
 import jakarta.persistence.Entity;
 
 @Entity
-public class Precisa extends Entrada {
+public class Precisa extends Entrada { /* Clase hija de Entrada que representa una entrada con asiento asignado. */
     private int fila, columna, planta;
 
     public Precisa() { 
