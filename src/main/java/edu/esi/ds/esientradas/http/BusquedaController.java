@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import edu.esi.ds.esientradas.dto.DtoEntrada;
 import edu.esi.ds.esientradas.dto.DtoEspectaculo;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.services.BusquedaService;
@@ -23,10 +25,19 @@ public class BusquedaController {
     private BusquedaService service;
 
     @GetMapping("/getEntradas")
-    public List<Entrada> getEntradas(@RequestParam Long espectaculoId) {
+    public List<DtoEntrada> getEntradas(@RequestParam Long espectaculoId) {
         // aqui se haria la logica para obtener las entradas de la base de datos
-        return this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
 
+        List<Entrada> entradas = this.service.getEntradas(espectaculoId);
+        List<DtoEntrada> dtosEntradas = entradas.stream().map(e -> {
+            DtoEntrada dto = new DtoEntrada();
+            dto.setId(e.getId());
+            dto.setEspectaculo(e.getEspectaculo().getArtista());
+            dto.setPrecio(e.getPrecio());
+            return dto;
+        }).toList();
+
+        return dtosEntradas;
     }
 
     @GetMapping("/getEspectaculos")
