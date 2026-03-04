@@ -2,21 +2,20 @@ package edu.esi.ds.esientradas.model;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+
 // jakarta es una clase de javax, pero con un nuevo nombre
 @Entity
 public class Escenario {
-    @Id @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY) // para que se genere automaticamente el id
+    @Id
+    @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY) // para que se genere automaticamente el id
     private Long id;
     private String nombre;
     private String descripcion;
-    
+
     @OneToMany(mappedBy = "escenario") // mappedBy indica que la relación es bidireccional y que el lado propietario es Espectaculo
     private List<Espectaculo> espectaculos = new ArrayList<>(); // para evitar nullpointerexception
 
@@ -44,7 +43,6 @@ public class Escenario {
         this.descripcion = descripcion;
     }
 
-    @JsonIgnore
     public List<Espectaculo> getEspectaculos() {
         return espectaculos;
     }
@@ -52,6 +50,4 @@ public class Escenario {
     public void setEspectaculos(List<Espectaculo> espectaculos) {
         this.espectaculos = espectaculos;
     }
-
-    
 }
