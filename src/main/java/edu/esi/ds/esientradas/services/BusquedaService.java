@@ -38,4 +38,9 @@ public class BusquedaService {
         return this.espectaculoDao.findByArtista(artista); // se devuelve la lista de espectaculos obtenida del DAO
     }
 
+    public List<Espectaculo> getEspectaculos(Long escenarioId) {
+        // aqui se haria la logica para obtener los espectaculos de la base de datos
+        return this.espectaculoDao.findByEscenarioId(escenarioId); // se devuelve la lista de espectaculos obtenida del DAO
+    }
+
 }
