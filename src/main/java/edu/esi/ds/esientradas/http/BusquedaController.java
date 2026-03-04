@@ -1,6 +1,7 @@
 package edu.esi.ds.esientradas.http;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +18,7 @@ import edu.esi.ds.esientradas.model.Entrada;
 
 @RestController
 @RequestMapping("/busqueda")
+@CrossOrigin(origins = "http://localhost:4200") // Permitir solicitudes desde cualquier origen (útil para desarrollo)
 public class BusquedaController {
 
     @Autowired
@@ -27,6 +29,22 @@ public class BusquedaController {
         // aqui se haria la logica para obtener las entradas de la base de datos
         return this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
 
+    }
+
+    @GetMapping("/getEspectaculos/{escenarioId}")
+    public List<DtoEspectaculo> getEspectaculos(@PathVariable Long escenarioId) {
+        
+        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId); // se llama al servicio para obtener los espectaculos
+
+        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
+            DtoEspectaculo dto = new DtoEspectaculo();
+            dto.setId(e.getId());
+            dto.setArtista(e.getArtista());
+            dto.setFecha(e.getFecha());
+            dto.setEscenario(e.getEscenario().getNombre());
+            return dto;
+        }).toList();
+        return dtos;
     }
 
     @GetMapping("/getEspectaculos")
