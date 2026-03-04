@@ -9,4 +9,6 @@ public interface EscpectaculoDao extends JpaRepository<Espectaculo, Long> {
 
     List<Espectaculo> findByArtista(String artista);
 
+    List<Espectaculo> findByEscenarioId(Long escenarioId);
+
 }
