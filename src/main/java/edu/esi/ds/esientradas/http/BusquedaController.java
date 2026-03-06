@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dto.DtoEspectaculo;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.services.BusquedaService;
 import java.util.List;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
-
-
 
 @RestController
 @RequestMapping("/busqueda")
@@ -33,8 +33,9 @@ public class BusquedaController {
 
     @GetMapping("/getEspectaculos/{escenarioId}")
     public List<DtoEspectaculo> getEspectaculos(@PathVariable Long escenarioId) {
-        
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId); // se llama al servicio para obtener los espectaculos
+
+        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId); // se llama al servicio para obtener
+                                                                                    // los espectaculos
 
         List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
             DtoEspectaculo dto = new DtoEspectaculo();
@@ -49,8 +50,9 @@ public class BusquedaController {
 
     @GetMapping("/getEspectaculos")
     public List<DtoEspectaculo> getEspectaculos(@RequestParam String artista) {
-        
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los espectaculos
+
+        List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los
+                                                                                // espectaculos
 
         List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
             DtoEspectaculo dto = new DtoEspectaculo();
@@ -74,4 +76,20 @@ public class BusquedaController {
         return "Hola, " + nombre + " " + apellido + ", bienvenido a Esientradas!"; // http://localhost:8080/busqueda/saludar?nombre=Jorge&apellido=Rodriguez
     }
 
+    @GetMapping("/getNumeroEntradas/{espectaculoId}")
+    public Integer getNumeroEntradas(@PathVariable Long espectaculoId) {
+        return this.service.getNumeroEntradas(espectaculoId); // se llama al servicio para obtener el numero de entradas
+    }
+
+    @GetMapping("/getEntradasLibres/{espectaculoId}")
+    public Integer getEntradasLibres(@PathVariable Long espectaculoId) {
+        return this.service.getEntradasLibres(espectaculoId); // se llama al servicio para obtener el numero de entradas
+                                                              // libres
+    }
+
+    @GetMapping("/getNumeroEntradasDto/{espectaculoId}")
+    public DtoEntradas getNumeroEntradasDto(@PathVariable Long espectaculoId) {
+        return this.service.getNumeroEntradasDto(espectaculoId); // se llama al servicio para obtener el numero de
+                                                                 // entradas a partir del dto
+    }
 }
