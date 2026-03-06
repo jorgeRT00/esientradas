@@ -9,6 +9,7 @@ import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EscpectaculoDao;
+import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 
 @Service
@@ -41,6 +42,20 @@ public class BusquedaService {
     public List<Espectaculo> getEspectaculos(Long escenarioId) {
         // aqui se haria la logica para obtener los espectaculos de la base de datos
         return this.espectaculoDao.findByEscenarioId(escenarioId); // se devuelve la lista de espectaculos obtenida del DAO
+    }
+
+    public DtoEntradas getNumeroEntradasDto(Long espectaculoId) {
+        return this.entradaDao.getNumeroEntradasDT(espectaculoId);
+    }
+
+    public Integer getNumeroEntradas(Long espectaculoId) {
+        DtoEntradas dto = this.entradaDao.getNumeroEntradasDT(espectaculoId);
+        return dto.getTotales();
+    }
+
+    public Integer getEntradasLibres(Long espectaculoId) {
+        DtoEntradas dto = this.entradaDao.getNumeroEntradasDT(espectaculoId);
+        return dto.getLibres();
     }
 
 }
