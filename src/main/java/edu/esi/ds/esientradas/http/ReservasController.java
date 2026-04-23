@@ -3,6 +3,7 @@ package edu.esi.ds.esientradas.http;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 import edu.esi.ds.esientradas.services.ReservasService;
@@ -28,5 +29,10 @@ public class ReservasController {
             session.setAttribute("precioTotal", precioTotal);
         }
         return precioTotal; // se devuelve el precio total de las entradas reservadas hasta el momento
+    }
+
+    @GetMapping("/comprar")
+    public String comprar (@RequestParam String tokenEntrada, @RequestParam String tokenUsuario, HttpSession session) {
+        return this.reservasService.comprar(tokenEntrada, tokenUsuario, session.getId()); // se llama al servicio para comprar la entrada y se devuelve el precio total de las entradas compradas
     }
 }
