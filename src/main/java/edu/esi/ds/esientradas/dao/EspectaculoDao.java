@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import edu.esi.ds.esientradas.model.Espectaculo;
 
-public interface EscpectaculoDao extends JpaRepository<Espectaculo, Long> {
+public interface EspectaculoDao extends JpaRepository<Espectaculo, Long> {
 
     List<Espectaculo> findByArtista(String artista);
 
