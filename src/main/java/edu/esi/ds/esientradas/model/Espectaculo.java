@@ -3,7 +3,6 @@ package edu.esi.ds.esientradas.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,16 +12,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Espectaculo {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String artista;
     private LocalDateTime fecha;
+    private LocalDateTime fechaAperturaTaquilla;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "escenario_id", nullable = false)
@@ -71,6 +71,14 @@ public class Espectaculo {
 
     public void setEntradas(List<Entrada> entradas) {
         this.entradas = entradas;
+    }
+
+    public LocalDateTime getFechaAperturaTaquilla() {
+        return fechaAperturaTaquilla;
+    }
+
+    public void setFechaAperturaTaquilla(LocalDateTime fechaAperturaTaquilla) {
+        this.fechaAperturaTaquilla = fechaAperturaTaquilla;
     }
 
 }
