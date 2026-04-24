@@ -7,13 +7,16 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.model.Estado;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import edu.esi.ds.esientradas.model.Token;
 import edu.esi.ds.esientradas.dao.TokenDao;
 
-
 @Service
 public class ReservasService {
+
+    @Autowired
+    private EmailService emailService;
 
     @Autowired
     private UsuariosService usuariosService;
@@ -47,15 +50,16 @@ public class ReservasService {
 
     @Transactional
     public String comprar(String tokenEntrada, String tokenUsuario, String sessionId) {
-        
+
         // 1º Veririficamos que el token de usuario llamando a esiurusuarios
         String emailUsuario = this.usuariosService.checkToken(tokenUsuario);
-        if(emailUsuario == null){
+        if (emailUsuario == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token de usuario no válido.");
         }
 
         // 2º Buscar el token de la entrada en la base de datos
-        Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
+        Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
 
         // 3º Verificar que el token de la entrada corresponde a la sesión actual
         if (!token.getSession().equals(sessionId)) {
@@ -65,6 +69,16 @@ public class ReservasService {
         // 4º Marcar la entrada como vendida
         Entrada entrada = token.getEntrada();
         this.entradaDao.updateEstado(entrada.getId(), Estado.VENDIDA);
+
+        try {
+
+            emailService.sendEmail(emailUsuario, "Compra de entrada exitosa",
+                    "Has comprado la entrada con ID: " + entrada.getId());
+
+        } catch (MessagingException e) {
+
+            System.err.println("Error al enviar el email: " + e.getMessage());
+        }
 
         return "Comprar realizada con éxito para el usuario: " + emailUsuario;
     }
