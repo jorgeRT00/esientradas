@@ -8,7 +8,7 @@ import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
-import edu.esi.ds.esientradas.dao.EscpectaculoDao;
+import edu.esi.ds.esientradas.dao.EspectaculoDao;
 import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 
@@ -19,7 +19,7 @@ public class BusquedaService {
     private EscenarioDao escenarioDao;
 
     @Autowired
-    private EscpectaculoDao espectaculoDao;
+    private EspectaculoDao espectaculoDao;
 
     @Autowired
     private EntradaDao entradaDao;
