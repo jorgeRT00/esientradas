@@ -1,7 +1,6 @@
 package edu.esi.ds.esientradas.services;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import edu.esi.ds.esientradas.model.Escenario;
@@ -25,22 +24,21 @@ public class BusquedaService {
     private EntradaDao entradaDao;
 
     public List<Entrada> getEntradas(Long espectaculoId) {
-        // aqui se haria la logica para obtener las entradas de la base de datos
         return this.entradaDao.findByEspectaculoId(espectaculoId); // se devuelve la lista de entradas obtenida del DAO
     }
 
     public List<Escenario> getEscenarios() {
-        // aqui se haria la logica para obtener los escenarios de la base de datos
         return this.escenarioDao.findAll(); // se devuelve la lista de escenarios obtenida del DAO
     }
 
     public List<Espectaculo> getEspectaculos(String artista) {
-        // aqui se haria la logica para obtener los espectaculos de la base de datos
+        if (artista == null || artista.isBlank()) {
+            return this.espectaculoDao.findAll(); // si el artista es nulo o vacío, se devuelve la lista de todos los espectaculos
+        }
         return this.espectaculoDao.findByArtista(artista); // se devuelve la lista de espectaculos obtenida del DAO
     }
 
     public List<Espectaculo> getEspectaculos(Long escenarioId) {
-        // aqui se haria la logica para obtener los espectaculos de la base de datos
         return this.espectaculoDao.findByEscenarioId(escenarioId); // se devuelve la lista de espectaculos obtenida del DAO
     }
 
