@@ -27,7 +27,7 @@ public class ReservasService {
     private EntradaDao entradaDao;
 
     @Transactional
-    public Long reservar(Long entradaId, String sessionId) {
+    public String reservar(Long entradaId, String sessionId) {
         Entrada entrada = this.entradaDao.findById(entradaId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada."));
         if (entrada.getEstado() != Estado.DISPONIBLE) {
@@ -45,11 +45,11 @@ public class ReservasService {
         // 3. Actualizar la entrada
         this.entradaDao.updateEstado(entradaId, Estado.RESERVADA);
 
-        return entrada.getPrecio();
+        return token.getValor(); // Devolvemos el valor del token para que el frontend lo use en la compra
     }
 
     @Transactional
-    public String comprar(String tokenEntrada, String tokenUsuario, String sessionId) {
+    public String comprar(String tokenEntrada, String tokenUsuario) {
 
         // 1º Veririficamos que el token de usuario llamando a esiurusuarios
         String emailUsuario = this.usuariosService.checkToken(tokenUsuario);
@@ -61,12 +61,7 @@ public class ReservasService {
         Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
 
-        // 3º Verificar que el token de la entrada corresponde a la sesión actual
-        if (!token.getSession().equals(sessionId)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token de entrada no válido para esta sesión.");
-        }
-
-        // 4º Marcar la entrada como vendida
+        // 3º Marcar la entrada como vendida
         Entrada entrada = token.getEntrada();
         this.entradaDao.updateEstado(entrada.getId(), Estado.VENDIDA);
 
