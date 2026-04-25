@@ -27,13 +27,13 @@ public class TokenLiberadorService {
         List<Token> tokens = tokenDao.findAll();
         long ahora = System.currentTimeMillis();
 
-        for (Token token : tokens) {
-            long tiempoTranscurrido = ahora - token.getHora();
+        for (Token token : tokens) { // Iterar sobre cada token para verificar su tiempo de vida
+            long tiempoTranscurrido = ahora - token.getHora(); // Calcular el tiempo transcurrido desde la creación del token
             if (tiempoTranscurrido > TIEMPO_LIMITE) {
-                // La entrada vuelve a estar disponible
-                entradaDao.updateEstado(token.getEntrada().getId(), Estado.DISPONIBLE);
-                // Eliminar el token
-                tokenDao.delete(token);
+                Long entradaId = token.getEntrada().getId(); // Obtener el ID de la entrada asociada al token
+                String tokenValor = token.getValor(); // Obtener el valor del token para eliminarlo posteriormente
+                entradaDao.updateEstado(entradaId, Estado.DISPONIBLE); // Actualizar el estado de la entrada a DISPONIBLE para que pueda ser utilizada por otros usuarios
+                tokenDao.deleteByValorNativo(tokenValor); // Eliminar el token utilizando el método definido en TokenDao
                 System.out.println("Token liberado: " + token.getValor());
             }
         }
