@@ -33,6 +33,11 @@ public class ColaService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El espectaculo no tiene cola de espera.");
         }
 
+        // Comprobar que la taquilla aun no esta abierta
+        if (LocalDateTime.now().isAfter(espectaculo.getFechaAperturaTaquilla())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La taquilla ya esta abierta. Accede directamente a comprar entradas.");
+        }
+
         //Comprobar que el usuario no esta ya en la cola de espera
         if (colaEsperaDao.findByEspectaculoAndEmailUsuario(espectaculo, emailUsuario).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El usuario ya esta en la cola de espera.");
@@ -62,18 +67,50 @@ public class ColaService {
         return colaEsperaDao.countByEspectaculoAndPosicionLessThan(espectaculo, entrada.getPosicion());
     }
 
+    public boolean tieneTurno(Long espectaculoId, String emailUsuario) {
+        Espectaculo espectaculo = espectaculoDao.findById(espectaculoId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espectaculo no encontrado.") );
+
+        return colaEsperaDao.findByEspectaculoAndEmailUsuario(espectaculo, emailUsuario).map(e -> e.getHoraInicioTurno() != null).orElse(false);
+    }
+
+    @Transactional
+    public void salirDeCola(Long espectaculoId, String emailUsuario) {
+        Espectaculo espectaculo = espectaculoDao.findById(espectaculoId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Espectaculo no encontrado.") );
+
+        colaEsperaDao.findByEspectaculoAndEmailUsuario(espectaculo, emailUsuario).ifPresent(e->{
+            colaEsperaDao.delete(e);
+            activarSiguiente(espectaculo);
+        });
+    }
+
     // Se ejecuta cada 1 minuto: libera turnos que llevan mas de 5 minutos esperando y asigna entradas a los siguientes usuarios en la cola de espera
     @Scheduled(fixedRate = 60000)
     @Transactional
-    public void liberarTurnosCaducados() {
-        List<ColaEspera> cola = colaEsperaDao.findAll();
-        LocalDateTime limite = LocalDateTime.now().minusMinutes(5);
+    public void gestionarColas() {
+        for (Espectaculo espectaculo : espectaculoDao.findByFechaAperturaTaquillaIsNotNull()) {
+            LocalDateTime limite = LocalDateTime.now().minusMinutes(5);
 
-        for (ColaEspera entrada : cola) {
-            if (entrada.getHoraInicioTurno() != null && entrada.getHoraInicioTurno().isBefore(limite)) {
-                System.out.println("Liberando turno del usuario " + entrada.getEmailUsuario() + " para el espectaculo " + entrada.getEspectaculo().getId());
-                colaEsperaDao.delete(entrada);
-            }
+            colaEsperaDao.findByEspectaculoOrderByPosicionAsc(espectaculo).stream()
+                    .filter(e -> e.getHoraInicioTurno() != null && e.getHoraInicioTurno().isBefore(limite))
+                    .forEach(e -> colaEsperaDao.delete(e));
+
+            activarSiguiente(espectaculo);
         }
     }
-}   
+
+    private void activarSiguiente(Espectaculo espectaculo) {
+        if (LocalDateTime.now().isBefore(espectaculo.getFechaAperturaTaquilla())) return;
+
+        boolean hayActivo = colaEsperaDao.findByEspectaculoOrderByPosicionAsc(espectaculo)
+                .stream().anyMatch(e -> e.getHoraInicioTurno() != null);
+
+        if (!hayActivo)
+            colaEsperaDao.findFirstByEspectaculoAndHoraInicioTurnoIsNullOrderByPosicionAsc(espectaculo)
+                    .ifPresent(e -> {
+                        e.setHoraInicioTurno(LocalDateTime.now());
+                        colaEsperaDao.save(e);
+                    });
+    }
+}
