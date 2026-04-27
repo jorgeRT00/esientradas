@@ -8,6 +8,7 @@ public class DtoEspectaculo {
     private LocalDateTime fecha;
     private String escenario;
     private Long id;
+    private LocalDateTime fechaAperturaTaquilla;
 
     public void setArtista(String artista) {
         this.artista = artista;
@@ -39,5 +40,13 @@ public class DtoEspectaculo {
 
     public Long getId() {
         return id;
+    }
+
+    public LocalDateTime getFechaAperturaTaquilla() {
+        return fechaAperturaTaquilla;
+    }
+
+    public void setFechaAperturaTaquilla(LocalDateTime fechaAperturaTaquilla) {
+        this.fechaAperturaTaquilla = fechaAperturaTaquilla;
     }
 }
