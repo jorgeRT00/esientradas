@@ -7,8 +7,10 @@ import edu.esi.ds.esientradas.model.Espectaculo;
 
 public interface EspectaculoDao extends JpaRepository<Espectaculo, Long> {
 
-    List<Espectaculo> findByArtista(String artista);
+    List<Espectaculo> findByArtista(String artista); // Buscar por artista
 
-    List<Espectaculo> findByEscenarioId(Long escenarioId);
+    List<Espectaculo> findByEscenarioId(Long escenarioId); // Buscar por escenario
+
+    List<Espectaculo> findByFechaAperturaTaquillaIsNotNull(); // Buscar por espectaculos con taquilla abierta
 
 }
