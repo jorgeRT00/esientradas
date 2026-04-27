@@ -43,6 +43,7 @@ public class BusquedaController {
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
             dto.setEscenario(e.getEscenario().getNombre());
+            dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
             return dto;
         }).toList();
         return dtos;
@@ -60,6 +61,7 @@ public class BusquedaController {
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
             dto.setEscenario(e.getEscenario().getNombre());
+            dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
             return dto;
         }).toList();
         return dtos;
