@@ -18,4 +18,7 @@ public interface ColaEsperaDao extends JpaRepository<ColaEspera, Long> {
     // Contar cuantos hay delanete de un usuario.
     int countByEspectaculoAndPosicionLessThan(Espectaculo espectaculo, int posicion);
 
+    // El primero en la cola que aun no tiene turno asignado
+    Optional<ColaEspera> findFirstByEspectaculoAndHoraInicioTurnoIsNullOrderByPosicionAsc(Espectaculo espectaculo);
+
 }
