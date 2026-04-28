@@ -22,6 +22,7 @@ public class Pago {
     private String estado; // PENDIENTE, COMPLETADO, CANCELADO, FALLIDO
     private String clientSecret; // Clave Secreta para el cliente de Stripe
     private LocalDateTime fechaCreacion;
+    private String tokenReserva; // Token de reserva asociado a este pago
     
     // Constructor vacío (requerido por JPA)
     public Pago() {
@@ -30,9 +31,10 @@ public class Pago {
     }
     
     // Constructor con parámetros
-    public Pago(Long cantidad) {
+    public Pago(Long cantidad, String tokenReserva) {
         this();
         this.cantidad = cantidad;
+        this.tokenReserva = tokenReserva;
     }
     
     // Getters y Setters
@@ -82,5 +84,13 @@ public class Pago {
     
     public void setFechaCreacion(LocalDateTime fechaCreacion) {
         this.fechaCreacion = fechaCreacion;
+    }
+
+    public String getTokenReserva() {
+        return tokenReserva;
+    }
+
+    public void setTokenReserva(String tokenReserva) {
+        this.tokenReserva = tokenReserva;
     }
 }

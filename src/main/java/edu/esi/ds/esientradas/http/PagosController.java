@@ -28,16 +28,11 @@ public class PagosController {
         
         // 1. Extraemos el token de reserva de entrada que nos manda el Frontend
         String tokenReservaEntrada = infoPeticionMap.get("tokenReservaEntrada");
-
+        Long centimos = this.reservasService.calcularTotalPorToken(tokenReservaEntrada);
+        
         try {
-            // 2. Le pedimos al reservas Service que busque las entradas de ese token
-            // ... y sume el precio
-            Long centimos = this.reservasService.calcularTotalPorToken(tokenReservaEntrada);
 
-            // 3. Pasar los céntimos al servicio de pagos para crear el intento de pago con Stripe
-            String result = this.pagosService.prepararPago(centimos); // Creamos el intento de pago con Stripe
-
-            // 4. Devolvemos la "llave" al frontend en formato de diccionario (JSON)
+            String result = this.pagosService.prepararPago(centimos, tokenReservaEntrada); 
             return Map.of("clientSecret", result);
 
         } catch (StripeException e) {
@@ -45,3 +40,5 @@ public class PagosController {
             e.printStackTrace();
             return Map.of("error", e.getMessage());
         }
+    }
+}

@@ -27,29 +27,56 @@ public class PagosService {
         Stripe.apiKey = secretKey;
     }
 
-    public String prepararPago(Long centimos) throws StripeException {
-        // 1. Crear la intención de pago en Stripe
-        PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
+@Service
+public class PagosService {
+
+    @Value("${stripe.api.key}")
+    private String secretKey;
+
+    @Autowired
+    private PagoDao pagoDao;
+
+    @PostConstruct
+    public void init() {
+        Stripe.apiKey = secretKey;
+    }
+
+    /** CONSTRUCTOR DE CONFIGURACIÓN
+     * Construye la configuración del pago sin ejecutar la llamada externa.
+     * Centraliza las reglas de negocio (moneda, cantidad, metadatos).
+     */
+    private PaymentIntentCreateParams configurarPago(Long centimos, String tokenReserva) {
+        return PaymentIntentCreateParams.builder()
                 .setAmount(centimos)
                 .setCurrency("eur")
+                .putMetadata("token_reserva_entrada", tokenReserva) // Vincula el pago al token del PDF
                 .build();
+    }
 
+    /** ORQUESTADOR
+     * Ejecuta la intención de pago con Stripe y persiste el estado en la base de datos.
+     */
+    public String prepararPago(Long centimos, String tokenReserva) throws StripeException {
+        // 1. Obtener la configuración estructurada
+        PaymentIntentCreateParams params = configurarPago(centimos, tokenReserva);
+
+        // 2. Comunicación con el servicio externo de Stripe
         PaymentIntent intent = PaymentIntent.create(params);
         
-        // 2. Extraer el client_secret usando JSON
+        // 3. Extracción del client_secret para el frontend
         JSONObject jso = new JSONObject(intent.toJson());
         String clientSecret = jso.getString("client_secret");
             
-        // 3. GUARDAR EN BBDD (Ahora dentro del flujo)
+        // 4. Persistencia en MySQL para trazabilidad del estado PENDIENTE
         Pago pago = new Pago(centimos);
         pago.setEstado("PENDIENTE");
         pago.setStripePaymentIntentId(intent.getId());
         pago.setClientSecret(clientSecret);
+        pago.setTokenReservaEntrada(tokenReserva); // Enlace con el sistema de reservas
         
-        this.pagoDao.save(pago); // Persistimos en la base de datos
-        
-        System.out.println("Pago guardado en BBDD con ID: " + pago.getId());
+        this.pagoDao.save(pago); 
         
         return clientSecret;
     }
+}
 }
