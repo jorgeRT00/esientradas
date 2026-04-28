@@ -1,5 +1,7 @@
 package edu.esi.ds.esientradas.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class ReservasService {
 
     @Autowired
     private UsuariosService usuariosService;
+
     @Autowired
     private TokenDao tokenDao;
 
@@ -76,5 +79,20 @@ public class ReservasService {
         }
 
         return "Comprar realizada con éxito para el usuario: " + emailUsuario;
+    }
+
+
+    // Método para calcular el total a pagar por un token de reserva
+    public long calcularTotalPorToken(String tokenReserva) {
+        // 1. Buscar las entradas asociadas a ese token de reserva
+        List<Entrada> entradasCompradas = entradaDao.findByTokenReserva(tokenReserva);
+
+        long totalCentimos = 0;
+    
+        for (Entrada entrada : entradasCompradas) {
+            totalCentimos += entrada.getPrecio();
+        }
+
+        return totalCentimos;
     }
 }

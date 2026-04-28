@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface ColaEsperaDao extends JpaRepository<ColaEspera, Long> {
 
-    // Todos los uusuraios en la cola de espera de un espectaculo ordenados por su
+    // Todos los usuraios en la cola de espera de un espectaculo ordenados por su
     // posicion
     List<ColaEspera> findByEspectaculoOrderByPosicionAsc(Espectaculo espectaculo);
 
