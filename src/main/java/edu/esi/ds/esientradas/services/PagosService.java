@@ -27,19 +27,6 @@ public class PagosService {
         Stripe.apiKey = secretKey;
     }
 
-@Service
-public class PagosService {
-
-    @Value("${stripe.api.key}")
-    private String secretKey;
-
-    @Autowired
-    private PagoDao pagoDao;
-
-    @PostConstruct
-    public void init() {
-        Stripe.apiKey = secretKey;
-    }
 
     /** CONSTRUCTOR DE CONFIGURACIÓN
      * Construye la configuración del pago sin ejecutar la llamada externa.
@@ -68,15 +55,14 @@ public class PagosService {
         String clientSecret = jso.getString("client_secret");
             
         // 4. Persistencia en MySQL para trazabilidad del estado PENDIENTE
-        Pago pago = new Pago(centimos);
+        Pago pago = new Pago(centimos, clientSecret);
         pago.setEstado("PENDIENTE");
         pago.setStripePaymentIntentId(intent.getId());
         pago.setClientSecret(clientSecret);
-        pago.setTokenReservaEntrada(tokenReserva); // Enlace con el sistema de reservas
+        pago.setTokenReserva(tokenReserva); // Enlace con el sistema de reservas
         
         this.pagoDao.save(pago); 
         
         return clientSecret;
     }
-}
 }

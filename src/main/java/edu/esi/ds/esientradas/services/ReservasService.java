@@ -85,7 +85,7 @@ public class ReservasService {
     // Método para calcular el total a pagar por un token de reserva
     public long calcularTotalPorToken(String tokenReserva) {
         // 1. Buscar las entradas asociadas a ese token de reserva
-        List<Entrada> entradasCompradas = entradaDao.findByTokenReserva(tokenReserva);
+        List<Entrada> entradasCompradas = entradaDao.findByTokenValor(tokenReserva);
 
         long totalCentimos = 0;
     
