@@ -17,6 +17,8 @@ public class ReservasController {
 
     @Autowired
     private ReservasService reservasService;
+    @Autowired
+    private edu.esi.ds.esientradas.services.ComprasService comprasService;
 
     @PutMapping ("/reservar")
     public String reservar(HttpSession session, @RequestParam Long entradaId) {
@@ -25,6 +27,6 @@ public class ReservasController {
 
     @GetMapping("/comprar")
     public String comprar (@RequestParam String tokenEntrada, @RequestParam String tokenUsuario) {
-        return this.reservasService.comprar(tokenEntrada, tokenUsuario); // se llama al servicio para comprar la entrada y se devuelve el precio total de las entradas compradas
+        return this.comprasService.comprar(tokenEntrada, tokenUsuario); // delega la compra al servicio de compras
     }
 }
