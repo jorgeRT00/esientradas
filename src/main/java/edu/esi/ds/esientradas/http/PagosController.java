@@ -1,17 +1,14 @@
 package edu.esi.ds.esientradas.http;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import com.stripe.exception.StripeException;
 import edu.esi.ds.esientradas.services.PagosService;
 import edu.esi.ds.esientradas.services.ReservasService;
-
 import java.util.Map;
 
 @RestController
@@ -56,12 +53,5 @@ public class PagosController {
             e.printStackTrace();
             return Map.of("error", e.getMessage());
         }
-    }
-
-    @PostMapping("/webhook")
-    public ResponseEntity<String> webhookStripe(@RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String signatureHeader) {
-        String resultado = this.pagosService.procesarWebhook(payload, signatureHeader);
-        return ResponseEntity.ok(resultado);
     }
 }

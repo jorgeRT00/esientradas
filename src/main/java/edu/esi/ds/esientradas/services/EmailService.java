@@ -2,14 +2,11 @@ package edu.esi.ds.esientradas.services;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
+import jakarta.mail.*;
+import jakarta.mail.internet.*;
+import jakarta.activation.*;
+import jakarta.mail.util.ByteArrayDataSource;
 import java.util.Properties;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
@@ -20,7 +17,7 @@ public class EmailService {
     @Value("${email.appPassword}")
     private String appPassword;
 
-    public void sendEmail(String to, String subject, String body) throws MessagingException {
+    public void sendEmail(String to, String subject, String body, byte[] pdfBytes, String pdfFileName) throws MessagingException {
         
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -42,7 +39,20 @@ public class EmailService {
         message.setFrom(new InternetAddress(username));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         message.setSubject(subject);
-        message.setText(body);
+
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText(body);
+
+        MimeBodyPart attachmentPart = new MimeBodyPart();
+        DataSource source = new ByteArrayDataSource(pdfBytes, "application/pdf");
+        attachmentPart.setDataHandler(new DataHandler(source));
+        attachmentPart.setFileName(pdfFileName);
+
+        Multipart multipart = new MimeMultipart();
+        multipart.addBodyPart(textPart);
+        multipart.addBodyPart(attachmentPart);
+
+        message.setContent(multipart);
         Transport.send(message);
     }
        

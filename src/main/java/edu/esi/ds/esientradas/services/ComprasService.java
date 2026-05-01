@@ -4,14 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.element.Paragraph;
 import jakarta.transaction.Transactional;
-import jakarta.mail.MessagingException;
-
 import edu.esi.ds.esientradas.dao.TokenDao;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 import edu.esi.ds.esientradas.model.Token;
 import edu.esi.ds.esientradas.model.Entrada;
+import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Estado;
+import java.io.ByteArrayOutputStream;
+import com.itextpdf.layout.Document;
+
 
 @Service
 public class ComprasService {
@@ -53,9 +58,29 @@ public class ComprasService {
         this.entradaDao.save(entrada);
 
         try {
-            emailService.sendEmail(emailUsuario, "Compra de entrada exitosa",
-                    "Has comprado la entrada con ID: " + entrada.getId());
-        } catch (MessagingException e) {
+            //Generamos el PDF de la entrada
+            Espectaculo espectaculo = entrada.getEspectaculo();
+            ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream();
+            PdfWriter writer = new PdfWriter(pdfBytes);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+            document.add(new Paragraph("ENTRADA ESIentradas"));
+            document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
+            document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
+            document.add(new Paragraph("ID Entrada: " + entrada.getId()));
+            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " €"));
+            document.close();
+            byte[] pdfBytesArray = pdfBytes.toByteArray();
+
+            // Enviamos el email con el PDF adjunto
+            emailService.sendEmail(
+                emailUsuario,
+                "Compra de entrada exitosa",
+                "Has comprado la entrada con ID: " + entrada.getId(),
+                pdfBytesArray,
+                "entrada_" + entrada.getId() + ".pdf"
+            );
+        } catch (Exception e) {
             System.err.println("Error al enviar el email: " + e.getMessage());
         }
 
@@ -63,28 +88,5 @@ public class ComprasService {
         this.tokenDao.deleteByValorNativo(tokenEntrada);
 
         return "Compra realizada con éxito para el usuario: " + emailUsuario;
-    }
-
-    /**
-     * Finaliza la compra desde el webhook de Stripe.
-     * No envía email porque el webhook no recibe el token del usuario.
-     */
-    @Transactional
-    public String finalizarCompraDesdeWebhook(String tokenEntrada) {
-        Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
-
-        Entrada entrada = token.getEntrada();
-
-        if (entrada.getEstado() == Estado.VENDIDA) {
-            this.tokenDao.deleteByValorNativo(tokenEntrada);
-            return "Entrada ya vendida anteriormente.";
-        }
-
-        entrada.setEstado(Estado.VENDIDA);
-        this.entradaDao.save(entrada);
-        this.tokenDao.deleteByValorNativo(tokenEntrada);
-
-        return "Compra finalizada correctamente desde webhook para la entrada: " + entrada.getId();
     }
 }
