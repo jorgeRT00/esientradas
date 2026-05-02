@@ -15,8 +15,8 @@ import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Estado;
 import java.io.ByteArrayOutputStream;
+import java.util.*;
 import com.itextpdf.layout.Document;
-
 
 @Service
 public class ComprasService {
@@ -33,15 +33,11 @@ public class ComprasService {
     @Autowired
     private EmailService emailService;
 
-    /**
-     * Completa la compra asociada a un token de reserva.
-     * Idempotente y transaccional.
-     */
     @Transactional
     public String comprar(String tokenEntrada, String tokenUsuario) {
         String emailUsuario = this.usuariosService.checkToken(tokenUsuario);
         if (emailUsuario == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token de usuario no válido.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token de usuario no valido.");
         }
 
         Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(
@@ -49,16 +45,15 @@ public class ComprasService {
 
         Entrada entrada = token.getEntrada();
 
-        // Idempotencia: si ya está vendida, devolvemos ok
         if (entrada.getEstado() == Estado.VENDIDA) {
             return "Entrada ya vendida anteriormente para el usuario: " + emailUsuario;
         }
 
         entrada.setEstado(Estado.VENDIDA);
+        entrada.setEmailComprador(emailUsuario);
         this.entradaDao.save(entrada);
 
         try {
-            //Generamos el PDF de la entrada
             Espectaculo espectaculo = entrada.getEspectaculo();
             ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream();
             PdfWriter writer = new PdfWriter(pdfBytes);
@@ -68,11 +63,10 @@ public class ComprasService {
             document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
             document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
             document.add(new Paragraph("ID Entrada: " + entrada.getId()));
-            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " €"));
+            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
             document.close();
             byte[] pdfBytesArray = pdfBytes.toByteArray();
 
-            // Enviamos el email con el PDF adjunto
             emailService.sendEmail(
                 emailUsuario,
                 "Compra de entrada exitosa",
@@ -84,9 +78,22 @@ public class ComprasService {
             System.err.println("Error al enviar el email: " + e.getMessage());
         }
 
-        // Eliminamos el token tras completar la compra
         this.tokenDao.deleteByValorNativo(tokenEntrada);
 
-        return "Compra realizada con éxito para el usuario: " + emailUsuario;
+        return "Compra realizada con exito para el usuario: " + emailUsuario;
+    }
+
+    public List<Map<String, Object>> misEntradas(String emailUsuario) {
+        List<Entrada> entradas = this.entradaDao.findByEmailComprador(emailUsuario);
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Entrada e : entradas) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", e.getId());
+            map.put("artista", e.getEspectaculo().getArtista());
+            map.put("fecha", e.getEspectaculo().getFecha().toString());
+            map.put("precio", e.getPrecio() / 100.0);
+            resultado.add(map);
+        }
+        return resultado;
     }
 }

@@ -33,6 +33,8 @@ public abstract class Entrada {
     @JoinColumn(name = "token_valor", referencedColumnName = "valor")
     protected Token token;
 
+    private String emailComprador;
+
     public Long getId() {
         return id;
     }
@@ -64,5 +66,13 @@ public abstract class Entrada {
 
     public void setPrecio(Long precio) {
         this.precio = precio;
+    }
+
+    public String getEmailComprador() {
+        return emailComprador;
+    }
+
+    public void setEmailComprador(String emailComprador) {
+        this.emailComprador = emailComprador;
     }
 }
