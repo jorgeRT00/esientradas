@@ -19,9 +19,9 @@ public class TokenLiberadorService {
     @Autowired
     private EntradaDao entradaDao;
 
-    private static final long TIEMPO_LIMITE = 1 * 60 * 1000; // 1 minuto en milisegundos
+    private static final long TIEMPO_LIMITE = 10 * 60 * 1000; // 10 minutos en milisegundos
 
-    @Scheduled(fixedRate = 60000) // Ejecutar cada minuto
+    @Scheduled(fixedRate = 60000 * 10) // Ejecutar cada 10 minutos
     @Transactional
     public void liberarTokensCaducados() {
         List<Token> tokens = tokenDao.findAll();
@@ -29,7 +29,8 @@ public class TokenLiberadorService {
 
         for (Token token : tokens) { // Iterar sobre cada token para verificar su tiempo de vida
             long tiempoTranscurrido = ahora - token.getHora(); // Calcular el tiempo transcurrido desde la creación del token
-            if (tiempoTranscurrido > TIEMPO_LIMITE) {
+            // Solo liberamos reservas que siguen activas; si ya se vendieron, no tocamos la entrada.
+            if (tiempoTranscurrido > TIEMPO_LIMITE && token.getEntrada().getEstado() == Estado.RESERVADA) {
                 Long entradaId = token.getEntrada().getId(); // Obtener el ID de la entrada asociada al token
                 String tokenValor = token.getValor(); // Obtener el valor del token para eliminarlo posteriormente
                 entradaDao.updateEstado(entradaId, Estado.DISPONIBLE); // Actualizar el estado de la entrada a DISPONIBLE para que pueda ser utilizada por otros usuarios
