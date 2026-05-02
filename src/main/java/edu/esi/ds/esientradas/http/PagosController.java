@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import com.stripe.exception.StripeException;
 import edu.esi.ds.esientradas.services.PagosService;
 import edu.esi.ds.esientradas.services.ReservasService;
@@ -49,7 +50,12 @@ public class PagosController {
         try {
             String result = this.pagosService.confirmarPago(paymentIntentId, tokenUsuario);
             return Map.of("result", result);
+        } catch (ResponseStatusException e) {
+            return Map.of("error", e.getReason() != null ? e.getReason() : e.getMessage());
         } catch (StripeException e) {
+            e.printStackTrace();
+            return Map.of("error", e.getMessage());
+        } catch (Exception e) {
             e.printStackTrace();
             return Map.of("error", e.getMessage());
         }

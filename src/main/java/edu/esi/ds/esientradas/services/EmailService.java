@@ -18,6 +18,8 @@ public class EmailService {
     private String appPassword;
 
     public void sendEmail(String to, String subject, String body, byte[] pdfBytes, String pdfFileName) throws MessagingException {
+        System.out.println("[EMAIL] Preparando correo para: " + to);
+        System.out.println("[EMAIL] Asunto: " + subject);
         
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -27,6 +29,7 @@ public class EmailService {
         props.put("mail.smtp.connectiontimeout", "10000");
         props.put("mail.smtp.timeout", "10000");
         props.put("mail.smtp.writetimeout", "10000");
+        props.put("mail.debug", "true");
 
         Session session = Session.getInstance(props, new jakarta.mail.Authenticator() {
             @Override
@@ -34,6 +37,7 @@ public class EmailService {
                 return new PasswordAuthentication(username, appPassword);
             }
         });
+        session.setDebug(true);
 
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(username));
@@ -54,6 +58,7 @@ public class EmailService {
 
         message.setContent(multipart);
         Transport.send(message);
+        System.out.println("[EMAIL] Correo enviado correctamente a: " + to);
     }
        
 }

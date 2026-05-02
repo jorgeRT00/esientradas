@@ -75,7 +75,7 @@ public class ComprasService {
                 "entrada_" + entrada.getId() + ".pdf"
             );
         } catch (Exception e) {
-            System.err.println("Error al enviar el email: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo enviar el email: " + e.getMessage(), e);
         }
 
         this.tokenDao.deleteByValorNativo(tokenEntrada);
