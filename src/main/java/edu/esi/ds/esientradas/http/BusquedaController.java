@@ -49,7 +49,24 @@ public class BusquedaController {
         return dtos;
     }
 
-    @GetMapping("/getEspectaculos")
+    @GetMapping(value = "/getEspectaculos", params = "escenarioId")
+    public List<DtoEspectaculo> getEspectaculosPorEscenario(@RequestParam Long escenarioId) {
+
+        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId);
+
+        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
+            DtoEspectaculo dto = new DtoEspectaculo();
+            dto.setId(e.getId());
+            dto.setArtista(e.getArtista());
+            dto.setFecha(e.getFecha());
+            dto.setEscenario(e.getEscenario().getNombre());
+            dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
+            return dto;
+        }).toList();
+        return dtos;
+    }
+
+    @GetMapping(value = "/getEspectaculos", params = "artista")
     public List<DtoEspectaculo> getEspectaculos(@RequestParam String artista) {
 
         List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los
