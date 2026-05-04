@@ -37,63 +37,53 @@ public class BusquedaController {
         return this.service.getEntradasDisponiblesDTO(espectaculoId);
     }
 
+    /**
+     * Obtiene espectáculos por escenario con protección contra null.
+     * Cubre tanto @PathVariable como @RequestParam escenarioId.
+     */
     @GetMapping("/getEspectaculos/{escenarioId}")
     public List<DtoEspectaculo> getEspectaculos(@PathVariable Long escenarioId) {
-
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId); // se llama al servicio para obtener
-                                                                                    // los espectaculos
-
-        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
-            DtoEspectaculo dto = new DtoEspectaculo();
-            dto.setId(e.getId());
-            dto.setArtista(e.getArtista());
-            dto.setFecha(e.getFecha());
-            // Pasar escenario con nombre y tipo
-            Escenario esc = e.getEscenario();
-            dto.setEscenario(new EscenarioDTO(esc.getNombre(), esc.getTipo().name()));
-            dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
-            return dto;
-        }).toList();
-        return dtos;
+        return this.mapearEspectaculosConSeguridad(this.service.getEspectaculos(escenarioId));
     }
 
     @GetMapping(value = "/getEspectaculos", params = "escenarioId")
     public List<DtoEspectaculo> getEspectaculosPorEscenario(@RequestParam Long escenarioId) {
+        return this.mapearEspectaculosConSeguridad(this.service.getEspectaculos(escenarioId));
+    }
 
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId);
-
-        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
+    /**
+     * Método privado para mapear espectáculos con protección uniforme contra null.
+     * Esto elimina duplicación y garantiza consistencia.
+     */
+    private List<DtoEspectaculo> mapearEspectaculosConSeguridad(List<Espectaculo> espectaculos) {
+        return espectaculos.stream().map(e -> {
             DtoEspectaculo dto = new DtoEspectaculo();
             dto.setId(e.getId());
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
-            // Pasar escenario con nombre y tipo
-            Escenario esc = e.getEscenario();
-            dto.setEscenario(new EscenarioDTO(esc.getNombre(), esc.getTipo().name()));
             dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
+
+            // --- PROTECCIÓN UNIFORME CONTRA NULL ---
+            Escenario esc = e.getEscenario();
+            String nombreEscenario = "Desconocido";
+            String tipoEscenario = "DESCONOCIDO"; // Valor por defecto coherente con TipoEscenario
+
+            if (esc != null) {
+                nombreEscenario = esc.getNombre() != null ? esc.getNombre() : "Desconocido";
+                if (esc.getTipo() != null) {
+                    tipoEscenario = esc.getTipo().name(); // TEATRO, CONCIERTO, ESTADIO
+                }
+            }
+
+            dto.setEscenario(new EscenarioDTO(nombreEscenario, tipoEscenario));
             return dto;
         }).toList();
-        return dtos;
     }
 
     @GetMapping(value = "/getEspectaculos", params = "artista")
     public List<DtoEspectaculo> getEspectaculos(@RequestParam String artista) {
-
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los
-                                                                                // espectaculos
-
-        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
-            DtoEspectaculo dto = new DtoEspectaculo();
-            dto.setId(e.getId());
-            dto.setArtista(e.getArtista());
-            dto.setFecha(e.getFecha());
-            // Pasar escenario con nombre y tipo
-            Escenario esc = e.getEscenario();
-            dto.setEscenario(new EscenarioDTO(esc.getNombre(), esc.getTipo().name()));
-            dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
-            return dto;
-        }).toList();
-        return dtos;
+        // Usa el mismo método privado con protección uniforme
+        return this.mapearEspectaculosConSeguridad(this.service.getEspectaculos(artista));
     }
 
     @GetMapping("/getEscenarios")
