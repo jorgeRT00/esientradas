@@ -16,6 +16,8 @@ import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Estado;
 import java.io.ByteArrayOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import java.util.*;
 
 @Service
@@ -122,4 +124,31 @@ public class ComprasService {
         }
         return resultado;
     }
+
+    public byte[] generarTicketsZip(List<String> entradaIds) {
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         ZipOutputStream zos = new ZipOutputStream(baos)) {
+        
+        for (String id : entradaIds) {
+            // Buscamos la entrada en la base de datos
+            Entrada entrada = this.entradaDao.findById(Long.parseLong(id)).orElse(null);
+            
+            if (entrada != null) {
+                // Reutilizamos tu lógica de creación de PDF
+                byte[] pdfBytes = crearPdfEntrada(entrada);
+                
+                // Creamos un "fichero" dentro del ZIP para este ticket
+                ZipEntry entry = new ZipEntry("ticket_" + id + ".pdf");
+                zos.putNextEntry(entry);
+                zos.write(pdfBytes);
+                zos.closeEntry();
+            }
+        }
+        
+        zos.finish();
+        return baos.toByteArray();
+    } catch (Exception e) {
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al empaquetar el ZIP");
+    }
+}
 }

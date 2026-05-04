@@ -46,4 +46,16 @@ public class ComprasController {
         // ✓ CORREGIDO: Usamos pdfContents (el nombre que definiste arriba)
         return new ResponseEntity<>(pdfContents, headers, HttpStatus.OK);
     }   
+
+    @GetMapping("/ticket/zip")
+    public ResponseEntity<byte[]> descargarTicketsZip(@RequestParam List<String> ids) {
+        byte[] zipContents = this.comprasService.generarTicketsZip(ids);
+        
+        HttpHeaders headers = new HttpHeaders();
+        // Indicamos que el contenido es un archivo ZIP
+        headers.setContentType(MediaType.parseMediaType("application/zip"));
+        headers.setContentDispositionFormData("attachment", "mis_entradas.zip");
+        
+        return new ResponseEntity<>(zipContents, headers, HttpStatus.OK);
+}
 }
