@@ -30,7 +30,7 @@ public abstract class Entrada {
     protected Estado estado;
 
     @OneToOne(mappedBy = "entrada", cascade = CascadeType.ALL)
-    @JoinColumn(name = "token_valor", referencedColumnName = "valor")
+    @JsonIgnore
     protected Token token;
 
     private String emailComprador;
