@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dto.DtoEspectaculo;
+import edu.esi.ds.esientradas.dto.EscenarioDTO;
 import edu.esi.ds.esientradas.dto.EntradaDTO;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.services.BusquedaService;
@@ -47,7 +48,9 @@ public class BusquedaController {
             dto.setId(e.getId());
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
-            dto.setEscenario(e.getEscenario().getNombre());
+            // Pasar escenario con nombre y tipo
+            Escenario esc = e.getEscenario();
+            dto.setEscenario(new EscenarioDTO(esc.getNombre(), esc.getTipo().name()));
             dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
             return dto;
         }).toList();
@@ -64,7 +67,9 @@ public class BusquedaController {
             dto.setId(e.getId());
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
-            dto.setEscenario(e.getEscenario().getNombre());
+            // Pasar escenario con nombre y tipo
+            Escenario esc = e.getEscenario();
+            dto.setEscenario(new EscenarioDTO(esc.getNombre(), esc.getTipo().name()));
             dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
             return dto;
         }).toList();
@@ -82,7 +87,9 @@ public class BusquedaController {
             dto.setId(e.getId());
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
-            dto.setEscenario(e.getEscenario().getNombre());
+            // Pasar escenario con nombre y tipo
+            Escenario esc = e.getEscenario();
+            dto.setEscenario(new EscenarioDTO(esc.getNombre(), esc.getTipo().name()));
             dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
             return dto;
         }).toList();

@@ -6,7 +6,7 @@ public class DtoEspectaculo {
 
     private String artista;
     private LocalDateTime fecha;
-    private String escenario;
+    private EscenarioDTO escenario; // Ahora es un objeto con nombre y tipo
     private Long id;
     private LocalDateTime fechaAperturaTaquilla;
 
@@ -18,8 +18,8 @@ public class DtoEspectaculo {
         this.fecha = fecha;
     }
 
-    public void setEscenario(String nombre) {
-        this.escenario = nombre;
+    public void setEscenario(EscenarioDTO escenario) {
+        this.escenario = escenario;
     }
 
     public String getArtista() {
@@ -30,7 +30,7 @@ public class DtoEspectaculo {
         return fecha;
     }
 
-    public String getEscenario() {
+    public EscenarioDTO getEscenario() {
         return escenario;
     }
 
