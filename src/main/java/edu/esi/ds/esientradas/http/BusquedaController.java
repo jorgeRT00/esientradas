@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dto.DtoEspectaculo;
+import edu.esi.ds.esientradas.dto.EntradaDTO;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.services.BusquedaService;
 import java.util.List;
@@ -25,10 +26,9 @@ public class BusquedaController {
     private BusquedaService service;
 
     @GetMapping("/getEntradas")
-    public List<Entrada> getEntradas(@RequestParam Long espectaculoId) {
-        // aqui se haria la logica para obtener las entradas de la base de datos
-        return this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
-
+    public List<EntradaDTO> getEntradas(@RequestParam Long espectaculoId) {
+        // Devuelve DTO formateado con ubicación, evitando referencias circulares
+        return this.service.getEntradasDTO(espectaculoId);
     }
 
     @GetMapping("/getEspectaculos/{escenarioId}")

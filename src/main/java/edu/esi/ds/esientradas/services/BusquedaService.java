@@ -1,6 +1,7 @@
 package edu.esi.ds.esientradas.services;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import edu.esi.ds.esientradas.model.Escenario;
@@ -9,6 +10,7 @@ import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EspectaculoDao;
 import edu.esi.ds.esientradas.dto.DtoEntradas;
+import edu.esi.ds.esientradas.dto.EntradaDTO;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 
 @Service
@@ -22,9 +24,39 @@ public class BusquedaService {
 
     @Autowired
     private EntradaDao entradaDao;
+    
+    @Autowired
+    private UbicacionMapper ubicacionMapper;
 
     public List<Entrada> getEntradas(Long espectaculoId) {
         return this.entradaDao.findByEspectaculoId(espectaculoId); // se devuelve la lista de entradas obtenida del DAO
+    }
+
+    /**
+     * Obtiene las entradas de un espectáculo con ubicación formateada (como DTOs).
+     * 
+     * @param espectaculoId ID del espectáculo
+     * @return Lista de EntradaDTO con ubicación formateada
+     */
+    public List<EntradaDTO> getEntradasDTO(Long espectaculoId) {
+        List<Entrada> entradas = this.entradaDao.findByEspectaculoId(espectaculoId);
+        return entradas.stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convierte una Entrada a EntradaDTO con ubicación formateada.
+     */
+    private EntradaDTO convertirADTO(Entrada entrada) {
+        return new EntradaDTO(
+            entrada.getId(),
+            entrada.getPrecio(),
+            entrada.getEstado().toString(),
+            entrada.getEmailComprador(),
+            entrada.getEspectaculo().getArtista(),
+            ubicacionMapper.mapearUbicacion(entrada)
+        );
     }
 
     public List<Escenario> getEscenarios() {
