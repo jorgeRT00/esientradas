@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
+import edu.esi.ds.esientradas.model.Estado;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EspectaculoDao;
 import edu.esi.ds.esientradas.dto.DtoEntradas;
@@ -40,6 +41,16 @@ public class BusquedaService {
      */
     public List<EntradaDTO> getEntradasDTO(Long espectaculoId) {
         List<Entrada> entradas = this.entradaDao.findByEspectaculoId(espectaculoId);
+        return entradas.stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtiene solo entradas DISPONIBLES con ubicación formateada (DTOs).
+     */
+    public List<EntradaDTO> getEntradasDisponiblesDTO(Long espectaculoId) {
+        List<Entrada> entradas = this.entradaDao.findByEspectaculoIdAndEstado(espectaculoId, Estado.DISPONIBLE);
         return entradas.stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());

@@ -41,7 +41,8 @@ public class UbicacionMapper {
             return mapearZona((DeZona) entrada);
         }
         
-        // Si no es ninguno de los dos, retornar genérico
+        // Si no es ninguno de los dos, es un caso anómalo: la fila existe,
+        // pero no está clasificada como butaca ni como zona.
         return crearUbicacionGeneral();
     }
 
@@ -66,13 +67,15 @@ public class UbicacionMapper {
         ubicacion.put("fila", butaca.getFila());
         ubicacion.put("butaca", butaca.getButaca());
         
-        // Descripción legible
-        String descripcion = String.format(
-            "Planta %d, Fila %d, Butaca %d",
-            butaca.getPlanta(),
-            butaca.getFila(),
-            butaca.getButaca()
-        );
+        // Descripción legible; si faltan coordenadas, lo indicamos explícitamente.
+        String descripcion = tieneCoordenadasButacaCompletas(butaca)
+            ? String.format(
+                "Planta %d, Fila %d, Butaca %d",
+                butaca.getPlanta(),
+                butaca.getFila(),
+                butaca.getButaca()
+            )
+            : "Ubicación de butaca pendiente de completar";
         ubicacion.put("descripcion", descripcion);
         
         return ubicacion;
@@ -95,8 +98,10 @@ public class UbicacionMapper {
         ubicacion.put("tipo", "ZONA");
         ubicacion.put("zona", zona.getZona());
         
-        // Descripción legible
-        String descripcion = String.format("Zona: %s", zona.getZona());
+        // Descripción legible; si falta la zona, lo indicamos explícitamente.
+        String descripcion = tieneZonaValida(zona)
+            ? String.format("Zona: %s", zona.getZona())
+            : "Ubicación de zona pendiente de completar";
         ubicacion.put("descripcion", descripcion);
         
         return ubicacion;
@@ -108,7 +113,15 @@ public class UbicacionMapper {
     private Map<String, Object> crearUbicacionGeneral() {
         Map<String, Object> ubicacion = new HashMap<>();
         ubicacion.put("tipo", "DESCONOCIDO");
-        ubicacion.put("descripcion", "Ubicación no especificada");
+        ubicacion.put("descripcion", "Ubicación pendiente de asignación");
         return ubicacion;
+    }
+
+    private boolean tieneCoordenadasButacaCompletas(DeButaca butaca) {
+        return butaca.getPlanta() != null && butaca.getFila() != null && butaca.getButaca() != null;
+    }
+
+    private boolean tieneZonaValida(DeZona zona) {
+        return zona.getZona() != null && !zona.getZona().isBlank();
     }
 }

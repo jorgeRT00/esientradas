@@ -31,6 +31,11 @@ public class BusquedaController {
         return this.service.getEntradasDTO(espectaculoId);
     }
 
+    @GetMapping("/getEntradasDisponibles")
+    public List<EntradaDTO> getEntradasDisponibles(@RequestParam Long espectaculoId) {
+        return this.service.getEntradasDisponiblesDTO(espectaculoId);
+    }
+
     @GetMapping("/getEspectaculos/{escenarioId}")
     public List<DtoEspectaculo> getEspectaculos(@PathVariable Long escenarioId) {
 
