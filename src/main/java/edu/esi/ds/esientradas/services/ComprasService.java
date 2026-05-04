@@ -7,6 +7,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.Document;
 import jakarta.transaction.Transactional;
 import edu.esi.ds.esientradas.dao.TokenDao;
 import edu.esi.ds.esientradas.dao.EntradaDao;
@@ -16,7 +17,6 @@ import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Estado;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
-import com.itextpdf.layout.Document;
 
 @Service
 public class ComprasService {
@@ -32,6 +32,42 @@ public class ComprasService {
 
     @Autowired
     private EmailService emailService;
+
+    /**
+     * MÉTODO NUEVO: Genera el PDF para el Controller de descarga
+     */
+    public byte[] generarTicketPdf(String entradaId) {
+        // Buscamos la entrada (asumiendo que el ID es Long en tu base de datos)
+        Entrada entrada = this.entradaDao.findById(Long.parseLong(entradaId))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada."));
+
+        return crearPdfEntrada(entrada);
+    }
+
+    /**
+     * MÉTODO PRIVADO: Centraliza la creación del PDF con iText 7
+     * Así lo usamos tanto para el email como para la descarga directa.
+     */
+    private byte[] crearPdfEntrada(Entrada entrada) {
+        try (ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream()) {
+            Espectaculo espectaculo = entrada.getEspectaculo();
+            
+            PdfWriter writer = new PdfWriter(pdfBytes);
+            PdfDocument pdfDoc = new PdfDocument(writer);
+            Document document = new Document(pdfDoc);
+
+            document.add(new Paragraph("ENTRADA ESIentradas").setBold().setFontSize(18));
+            document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
+            document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
+            document.add(new Paragraph("ID Entrada: " + entrada.getId()));
+            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
+            
+            document.close();
+            return pdfBytes.toByteArray();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar el PDF.");
+        }
+    }
 
     @Transactional
     public String comprar(String tokenEntrada, String tokenUsuario) {
@@ -53,20 +89,10 @@ public class ComprasService {
         entrada.setEmailComprador(emailUsuario);
         this.entradaDao.save(entrada);
 
-        try {
-            Espectaculo espectaculo = entrada.getEspectaculo();
-            ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream();
-            PdfWriter writer = new PdfWriter(pdfBytes);
-            PdfDocument pdfDoc = new PdfDocument(writer);
-            Document document = new Document(pdfDoc);
-            document.add(new Paragraph("ENTRADA ESIentradas"));
-            document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
-            document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
-            document.add(new Paragraph("ID Entrada: " + entrada.getId()));
-            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
-            document.close();
-            byte[] pdfBytesArray = pdfBytes.toByteArray();
+        // Generamos el PDF usando el nuevo método centralizado
+        byte[] pdfBytesArray = crearPdfEntrada(entrada);
 
+        try {
             emailService.sendEmail(
                 emailUsuario,
                 "Compra de entrada exitosa",
