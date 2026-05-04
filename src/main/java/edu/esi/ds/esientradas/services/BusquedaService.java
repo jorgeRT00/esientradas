@@ -78,7 +78,7 @@ public class BusquedaService {
         if (artista == null || artista.isBlank()) {
             return this.espectaculoDao.findAll(); // si el artista es nulo o vacío, se devuelve la lista de todos los espectaculos
         }
-        return this.espectaculoDao.findByArtista(artista); // se devuelve la lista de espectaculos obtenida del DAO
+        return this.espectaculoDao.findByArtistaContainingIgnoreCase(artista.trim()); // búsqueda parcial e insensible a mayúsculas
     }
 
     public List<Espectaculo> getEspectaculos(Long escenarioId) {
