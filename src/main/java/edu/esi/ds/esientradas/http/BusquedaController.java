@@ -17,6 +17,7 @@ import edu.esi.ds.esientradas.services.BusquedaService;
 import java.util.List;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
+import edu.esi.ds.esientradas.dto.EntradasYEscenarioDTO;
 
 @RestController
 @RequestMapping("/busqueda")
@@ -35,6 +36,15 @@ public class BusquedaController {
     @GetMapping("/getEntradasDisponibles")
     public List<EntradaDTO> getEntradasDisponibles(@RequestParam Long espectaculoId) {
         return this.service.getEntradasDisponiblesDTO(espectaculoId);
+    }
+
+    /**
+     * Obtiene las entradas disponibles junto con el tipo de escenario.
+     * El frontend usa esto para mostrar INTERFAZ A (ZONAS) o INTERFAZ B (BUTACAS).
+     */
+    @GetMapping("/getEntradasConEscenario")
+    public EntradasYEscenarioDTO getEntradasConEscenario(@RequestParam Long espectaculoId) {
+        return this.service.getEntradasDisponiblesConEscenario(espectaculoId);
     }
 
     /**

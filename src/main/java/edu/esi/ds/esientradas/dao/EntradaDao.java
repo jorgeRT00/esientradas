@@ -13,7 +13,6 @@ public interface EntradaDao extends JpaRepository<Entrada, Long> {
 
     List<Entrada> findByEmailComprador(String emailComprador);
     List<Entrada> findByEspectaculoId(Long espectaculoId);
-    List<Entrada> findByEspectaculoIdAndEstado(Long espectaculoId, Estado estado);
     List<Entrada> findByTokenValor(String valor); // consulta SQL: SELECT * FROM entrada WHERE token_reserva = ?
     @Query(value = "UPDATE Entrada e SET e.estado = :estado WHERE e.id = :entradaId") // Consulta JPQL para actualizar el estado de una entrada
     @Modifying(clearAutomatically = true, flushAutomatically = true)
@@ -30,4 +29,7 @@ public interface EntradaDao extends JpaRepository<Entrada, Long> {
         WHERE e.espectaculo.id = :espectaculoId
     """)
     DtoEntradas getNumeroEntradasDT(@Param("espectaculoId") Long espectaculoId);
+
+    @Query(value = "SELECT DISTINCT dtype FROM entrada", nativeQuery = true)
+    List<String> obtenerTiposEntrada();
 }
