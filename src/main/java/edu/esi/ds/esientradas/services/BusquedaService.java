@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
-import edu.esi.ds.esientradas.model.Estado;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EspectaculoDao;
 import edu.esi.ds.esientradas.dto.DtoEntradas;

@@ -24,9 +24,6 @@ import java.util.*;
 public class ComprasService {
 
     @Autowired
-    private UsuariosService usuariosService;
-
-    @Autowired
     private TokenDao tokenDao;
 
     @Autowired
@@ -35,41 +32,15 @@ public class ComprasService {
     @Autowired
     private EmailService emailService;
 
-    /**
-     * MÉTODO NUEVO: Genera el PDF para el Controller de descarga
-     */
-    public byte[] generarTicketPdf(String entradaId) {
-        // Buscamos la entrada (asumiendo que el ID es Long en tu base de datos)
-        Entrada entrada = this.entradaDao.findById(Long.parseLong(entradaId))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada."));
+    @Autowired
+    private PdfService pdfService;
 
-        return crearPdfEntrada(entrada);
-    }
+    @Autowired
+    private ZipService zipService;
 
-    /**
-     * MÉTODO PRIVADO: Centraliza la creación del PDF con iText 7
-     * Así lo usamos tanto para el email como para la descarga directa.
-     */
-    private byte[] crearPdfEntrada(Entrada entrada) {
-        try (ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream()) {
-            Espectaculo espectaculo = entrada.getEspectaculo();
-            
-            PdfWriter writer = new PdfWriter(pdfBytes);
-            PdfDocument pdfDoc = new PdfDocument(writer);
-            Document document = new Document(pdfDoc);
+    @Autowired
+    private UsuariosService usuariosService;
 
-            document.add(new Paragraph("ENTRADA ESIentradas").setBold().setFontSize(18));
-            document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
-            document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
-            document.add(new Paragraph("ID Entrada: " + entrada.getId()));
-            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
-            
-            document.close();
-            return pdfBytes.toByteArray();
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al generar el PDF.");
-        }
-    }
 
     @Transactional
     public String comprar(String tokenEntrada, String tokenUsuario) {
@@ -82,7 +53,6 @@ public class ComprasService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
 
         Entrada entrada = token.getEntrada();
-
         if (entrada.getEstado() == Estado.VENDIDA) {
             return "Entrada ya vendida anteriormente para el usuario: " + emailUsuario;
         }
@@ -91,15 +61,14 @@ public class ComprasService {
         entrada.setEmailComprador(emailUsuario);
         this.entradaDao.save(entrada);
 
-        // Generamos el PDF usando el nuevo método centralizado
-        byte[] pdfBytesArray = crearPdfEntrada(entrada);
+        // Delegamos la generación del PDF a un servicio específico para mantener el código limpio
+        byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
 
         try {
             emailService.sendEmail(
-                emailUsuario,
-                "Compra de entrada exitosa",
+                emailUsuario, "Compra de entrada exitosa",
                 "Has comprado la entrada con ID: " + entrada.getId(),
-                pdfBytesArray,
+                pdfBytes,
                 "entrada_" + entrada.getId() + ".pdf"
             );
         } catch (Exception e) {
@@ -125,30 +94,34 @@ public class ComprasService {
         return resultado;
     }
 
+    /**
+     * Ahora este método es un "coordinador": pide PDFs y se los pasa al ZipService.
+     */
     public byte[] generarTicketsZip(List<String> entradaIds) {
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-         ZipOutputStream zos = new ZipOutputStream(baos)) {
+        Map<String, byte[]> archivosParaZip = new HashMap<>();
         
         for (String id : entradaIds) {
-            // Buscamos la entrada en la base de datos
-            Entrada entrada = this.entradaDao.findById(Long.parseLong(id)).orElse(null);
-            
-            if (entrada != null) {
-                // Reutilizamos tu lógica de creación de PDF
-                byte[] pdfBytes = crearPdfEntrada(entrada);
-                
-                // Creamos un "fichero" dentro del ZIP para este ticket
-                ZipEntry entry = new ZipEntry("ticket_" + id + ".pdf");
-                zos.putNextEntry(entry);
-                zos.write(pdfBytes);
-                zos.closeEntry();
-            }
+            this.entradaDao.findById(Long.parseLong(id)).ifPresent(entrada -> {
+                // Pedimos el PDF al especialista
+                byte[] pdf = pdfService.crearPdfEntrada(entrada);
+                archivosParaZip.put("ticket_" + id + ".pdf", pdf);
+            });
         }
-        
-        zos.finish();
-        return baos.toByteArray();
-    } catch (Exception e) {
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al empaquetar el ZIP");
+
+        try {
+            // Pasamos el mapa de archivos al ZipService
+            return zipService.generarZip(archivosParaZip);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al empaquetar el ZIP", e);
+        }
     }
-}
+
+    public byte[] generarTicketPdf(String id) {
+        // 1. Buscamos la entrada en la BD (convertimos el String a Long)
+        Entrada entrada = this.entradaDao.findById(Long.parseLong(id))
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada"));
+            
+        // 2. Le pasamos el objeto completo al especialista en PDFs
+        return pdfService.crearPdfEntrada(entrada);
+    }
 }

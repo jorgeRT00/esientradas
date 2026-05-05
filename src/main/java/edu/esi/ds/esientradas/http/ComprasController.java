@@ -7,10 +7,10 @@ import org.springframework.http.MediaType;   // ✓ AGREGADO
 import org.springframework.http.HttpStatus;  // ✓ AGREGADO
 import org.springframework.web.bind.annotation.*; // ✓ Simplifica los imports de las anotaciones
 
+import edu.esi.ds.esientradas.services.ComprasService;
+
 import java.util.List;
 import java.util.Map;
-
-import edu.esi.ds.esientradas.services.ComprasService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -19,6 +19,9 @@ public class ComprasController {
 
     @Autowired
     private ComprasService comprasService;
+
+    @Autowired
+    private ComprasService ComprasService; // Inyectamos el servicio de compras para delegar la lógica de marcar la entrada como vendida
 
     @PostMapping("/comprar")
     public String comprar(@RequestParam String tokenEntrada, @RequestParam String tokenUsuario) {
@@ -33,7 +36,7 @@ public class ComprasController {
     @GetMapping("/ticket/pdf/{entradaId}")
     public ResponseEntity<byte[]> descargarTicketPdf(@PathVariable String entradaId) {
         // Obtenemos el contenido del PDF desde el servicio
-        byte[] pdfContents = this.comprasService.generarTicketPdf(entradaId);
+        byte[] pdfContents = this.ComprasService.generarTicketPdf(entradaId);
         
         // Configuramos las cabeceras de respuesta
         HttpHeaders headers = new HttpHeaders();

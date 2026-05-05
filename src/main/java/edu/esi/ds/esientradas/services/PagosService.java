@@ -13,9 +13,6 @@ import edu.esi.ds.esientradas.model.Pago;
 public class PagosService {
 
     @Autowired
-    private ComprasService comprasService; // Inyectamos el servicio de compras para delegar la lógica de marcar la entrada como vendida
-
-    @Autowired
     private PagoDao pagoDao; // Inyectamos el DAO para poder guardar en BBDD
 
     @Autowired
@@ -49,7 +46,7 @@ public class PagosService {
      * CONFIRMACIÓN
      * Verifica que el dinero está en el banco y finaliza la compra.
      */
-    public String confirmarPago(String paymentIntentId, String tokenUsuario) throws Exception {
+    public String confirmarPago(String paymentIntentId) throws Exception {
         
         // 1. Verificación genérica: ¿Ha pagado?
         if (!pasarela.verificarSiFueExitoso(paymentIntentId)) {
@@ -64,6 +61,6 @@ public class PagosService {
         }
 
         // 3. Delegamos el fin de la compra al servicio correspondiente
-        return this.comprasService.comprar(tokenReserva, tokenUsuario);
+        return tokenReserva;
     }
 }

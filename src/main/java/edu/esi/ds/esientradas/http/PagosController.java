@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
-import com.stripe.exception.StripeException;
 import edu.esi.ds.esientradas.services.PagosService;
 import edu.esi.ds.esientradas.services.ReservasService;
+import edu.esi.ds.esientradas.services.ComprasService;
 import java.util.Map;
 
 @RestController
@@ -19,6 +19,9 @@ public class PagosController {
 
     @Autowired
     private PagosService pagosService;
+
+    @Autowired
+    private ComprasService comprasService; // Inyectamos el servicio de compras para delegar la lógica de marcar la entrada como vendida
 
     @Autowired
     private ReservasService reservasService; // Inyectamos el servicio que maneja las reservas
@@ -35,7 +38,7 @@ public class PagosController {
             String result = this.pagosService.prepararPago(centimos, tokenReservaEntrada); 
             return Map.of("clientSecret", result);
 
-        } catch (StripeException e) {
+        } catch (Exception e) {
             // Si Stripe falla (por ejemplo, clave incorrecta), devolvemos el error
             e.printStackTrace();
             return Map.of("error", e.getMessage());
@@ -48,16 +51,16 @@ public class PagosController {
         String tokenUsuario = info.get("tokenUsuario");
 
         try {
-            String result = this.pagosService.confirmarPago(paymentIntentId, tokenUsuario);
-            return Map.of("result", result);
+            String tokenReserva = this.pagosService.confirmarPago(paymentIntentId);
+            String resultado = this.comprasService.comprar(tokenReserva, tokenUsuario);
+        
+            return Map.of("result", resultado);
+        
         } catch (ResponseStatusException e) {
             return Map.of("error", e.getReason() != null ? e.getReason() : e.getMessage());
-        } catch (StripeException e) {
-            e.printStackTrace();
-            return Map.of("error", e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return Map.of("error", e.getMessage());
+            return Map.of("error", "Error inesperado al confirmar el pago");
         }
     }
 }
