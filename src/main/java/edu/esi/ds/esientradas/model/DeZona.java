@@ -1,14 +1,9 @@
 package edu.esi.ds.esientradas.model;
 
 import jakarta.persistence.Entity;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * Entidad que representa una entrada para un recinto tipo Concierto o Estadio.
- * Hereda de Entrada y añade un identificador de zona.
- * 
- * Esta clase es parte del patrón de herencia JOINED que permite
- * diferentes tipos de entrada según el tipo de recinto.
- */
 @Entity
 public class DeZona extends Entrada {
     
@@ -42,5 +37,27 @@ public class DeZona extends Entrada {
     @Override
     public String toString() {
         return String.format("Zona: %s", zona);
+    }
+
+    /**
+     * Cumplimos el contrato de Entrada: 
+     * DeZona sabe cómo empaquetar sus propios datos de zona.
+     */
+    @Override
+    public Map<String, Object> getUbicacionAsMap() {
+        Map<String, Object> ubicacion = new HashMap<>();
+        
+        ubicacion.put("tipo", "ZONA");
+        ubicacion.put("zona", this.zona);
+        
+        // Comprobamos si la zona es válida (no es nula ni está en blanco)
+        boolean valida = this.zona != null && !this.zona.isBlank();
+        String descripcion = valida 
+            ? String.format("Zona: %s", this.zona)
+            : "Ubicación de zona pendiente de completar";
+            
+        ubicacion.put("descripcion", descripcion);
+        
+        return ubicacion;
     }
 }

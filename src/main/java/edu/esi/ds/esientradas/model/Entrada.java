@@ -1,4 +1,5 @@
 package edu.esi.ds.esientradas.model;
+import java.util.Map;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -75,4 +76,7 @@ public abstract class Entrada {
     public void setEmailComprador(String emailComprador) {
         this.emailComprador = emailComprador;
     }
+
+    // Método abstracto para obtener la ubicación formateada como un Map
+    public abstract Map<String, Object> getUbicacionAsMap();
 }
