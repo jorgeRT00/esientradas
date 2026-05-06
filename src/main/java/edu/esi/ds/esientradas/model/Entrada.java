@@ -20,7 +20,7 @@ public abstract class Entrada {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     protected Long id;
-    private Long precio; // Ojo: en céntimos de euro
+    protected Long precio; // Ojo: en céntimos de euro
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "espectaculo_id", nullable = false)
@@ -31,6 +31,7 @@ public abstract class Entrada {
 
     @OneToOne(mappedBy = "entrada", cascade = CascadeType.ALL)
     @JoinColumn(name = "token_valor", referencedColumnName = "valor")
+    @JsonIgnore
     protected Token token;
 
     private String emailComprador;

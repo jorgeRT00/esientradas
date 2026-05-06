@@ -10,88 +10,103 @@ import org.springframework.web.bind.annotation.RestController;
 
 import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dto.DtoEspectaculo;
+import edu.esi.ds.esientradas.dto.EscenarioDTO;
+import edu.esi.ds.esientradas.dto.EntradaDTO;
+import edu.esi.ds.esientradas.dto.EntradasYEscenarioDTO;
 import edu.esi.ds.esientradas.model.Escenario;
+import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.services.BusquedaService;
 import java.util.List;
-import edu.esi.ds.esientradas.model.Espectaculo;
-import edu.esi.ds.esientradas.model.Entrada;
 
 @RestController
 @RequestMapping("/busqueda")
-@CrossOrigin(origins = "http://localhost:4200") // Permitir solicitudes desde cualquier origen (útil para desarrollo)
+@CrossOrigin(origins = "http://localhost:4200")
 public class BusquedaController {
 
     @Autowired
     private BusquedaService service;
 
     @GetMapping("/getEntradas")
-    public List<Entrada> getEntradas(@RequestParam Long espectaculoId) {
-        // aqui se haria la logica para obtener las entradas de la base de datos
-        return this.service.getEntradas(espectaculoId); // se llama al servicio para obtener las entradas
+    public List<EntradaDTO> getEntradas(@RequestParam Long espectaculoId) {
+        return this.service.getEntradasDTO(espectaculoId);
+    }
 
+    @GetMapping("/getEntradasDisponibles")
+    public List<EntradaDTO> getEntradasDisponibles(@RequestParam Long espectaculoId) {
+        return this.service.getEntradasDisponiblesDTO(espectaculoId);
+    }
+
+    /**
+     * Obtiene las entradas disponibles junto con el tipo de escenario.
+     * El frontend usa esto para mostrar interfaz de ZONAS o BUTACAS.
+     */
+    @GetMapping("/getEntradasConEscenario")
+    public EntradasYEscenarioDTO getEntradasConEscenario(@RequestParam Long espectaculoId) {
+        return this.service.getEntradasDisponiblesConEscenario(espectaculoId);
     }
 
     @GetMapping("/getEspectaculos/{escenarioId}")
     public List<DtoEspectaculo> getEspectaculos(@PathVariable Long escenarioId) {
-
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(escenarioId); // se llama al servicio para obtener
-                                                                                    // los espectaculos
-
-        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
-            DtoEspectaculo dto = new DtoEspectaculo();
-            dto.setId(e.getId());
-            dto.setArtista(e.getArtista());
-            dto.setFecha(e.getFecha());
-            dto.setEscenario(e.getEscenario().getNombre());
-            dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
-            return dto;
-        }).toList();
-        return dtos;
+        return this.mapearEspectaculosConSeguridad(this.service.getEspectaculos(escenarioId));
     }
 
-    @GetMapping("/getEspectaculos")
+    @GetMapping(value = "/getEspectaculos", params = "escenarioId")
+    public List<DtoEspectaculo> getEspectaculosPorEscenario(@RequestParam Long escenarioId) {
+        return this.mapearEspectaculosConSeguridad(this.service.getEspectaculos(escenarioId));
+    }
+
+    @GetMapping(value = "/getEspectaculos", params = "artista")
     public List<DtoEspectaculo> getEspectaculos(@RequestParam String artista) {
+        return this.mapearEspectaculosConSeguridad(this.service.getEspectaculos(artista));
+    }
 
-        List<Espectaculo> espectaculos = this.service.getEspectaculos(artista); // se llama al servicio para obtener los
-                                                                                // espectaculos
-
-        List<DtoEspectaculo> dtos = espectaculos.stream().map(e -> {
+    /**
+     * Mapea espectáculos con protección uniforme contra null.
+     */
+    private List<DtoEspectaculo> mapearEspectaculosConSeguridad(List<Espectaculo> espectaculos) {
+        return espectaculos.stream().map(e -> {
             DtoEspectaculo dto = new DtoEspectaculo();
             dto.setId(e.getId());
             dto.setArtista(e.getArtista());
             dto.setFecha(e.getFecha());
-            dto.setEscenario(e.getEscenario().getNombre());
             dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
+
+            Escenario esc = e.getEscenario();
+            String nombreEscenario = "Desconocido";
+            String tipoEscenario = "DESCONOCIDO";
+            if (esc != null) {
+                nombreEscenario = esc.getNombre() != null ? esc.getNombre() : "Desconocido";
+                if (esc.getTipo() != null) {
+                    tipoEscenario = esc.getTipo().name();
+                }
+            }
+            dto.setEscenario(new EscenarioDTO(nombreEscenario, tipoEscenario));
             return dto;
         }).toList();
-        return dtos;
     }
 
     @GetMapping("/getEscenarios")
     public List<Escenario> getEscenarios() {
-        // aqui se haria la logica para obtener los escenarios de la base de datos
-        return this.service.getEscenarios(); // se llama al servicio para obtener los escenarios
+        return this.service.getEscenarios();
     }
 
     @GetMapping("/saludar/{nombre}")
     public String saludar(@PathVariable String nombre, @RequestParam String apellido) {
-        return "Hola, " + nombre + " " + apellido + ", bienvenido a Esientradas!"; // http://localhost:8080/busqueda/saludar?nombre=Jorge&apellido=Rodriguez
+        return "Hola, " + nombre + " " + apellido + ", bienvenido a Esientradas!";
     }
 
     @GetMapping("/getNumeroEntradas/{espectaculoId}")
     public Integer getNumeroEntradas(@PathVariable Long espectaculoId) {
-        return this.service.getNumeroEntradas(espectaculoId); // se llama al servicio para obtener el numero de entradas
+        return this.service.getNumeroEntradas(espectaculoId);
     }
 
     @GetMapping("/getEntradasLibres/{espectaculoId}")
     public Integer getEntradasLibres(@PathVariable Long espectaculoId) {
-        return this.service.getEntradasLibres(espectaculoId); // se llama al servicio para obtener el numero de entradas
-                                                              // libres
+        return this.service.getEntradasLibres(espectaculoId);
     }
 
     @GetMapping("/getNumeroEntradasDto/{espectaculoId}")
     public DtoEntradas getNumeroEntradasDto(@PathVariable Long espectaculoId) {
-        return this.service.getNumeroEntradasDto(espectaculoId); // se llama al servicio para obtener el numero de
-                                                                 // entradas a partir del dto
+        return this.service.getNumeroEntradasDto(espectaculoId);
     }
 }

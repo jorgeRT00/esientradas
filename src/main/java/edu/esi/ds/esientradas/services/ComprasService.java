@@ -4,19 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.element.Paragraph;
 import jakarta.transaction.Transactional;
 import edu.esi.ds.esientradas.dao.TokenDao;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 import edu.esi.ds.esientradas.model.Token;
 import edu.esi.ds.esientradas.model.Entrada;
-import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Estado;
-import java.io.ByteArrayOutputStream;
 import java.util.*;
-import com.itextpdf.layout.Document;
 
 @Service
 public class ComprasService {
@@ -32,6 +26,12 @@ public class ComprasService {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PdfService pdfService;
+
+    @Autowired
+    private ZipService zipService;
 
     @Transactional
     public String comprar(String tokenEntrada, String tokenUsuario) {
@@ -54,28 +54,17 @@ public class ComprasService {
         this.entradaDao.save(entrada);
 
         try {
-            Espectaculo espectaculo = entrada.getEspectaculo();
-            ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream();
-            PdfWriter writer = new PdfWriter(pdfBytes);
-            PdfDocument pdfDoc = new PdfDocument(writer);
-            Document document = new Document(pdfDoc);
-            document.add(new Paragraph("ENTRADA ESIentradas"));
-            document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
-            document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
-            document.add(new Paragraph("ID Entrada: " + entrada.getId()));
-            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
-            document.close();
-            byte[] pdfBytesArray = pdfBytes.toByteArray();
+            byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
 
             emailService.sendEmail(
-                emailUsuario,
-                "Compra de entrada exitosa",
-                "Has comprado la entrada con ID: " + entrada.getId(),
-                pdfBytesArray,
-                "entrada_" + entrada.getId() + ".pdf"
-            );
+                    emailUsuario,
+                    "Compra de entrada exitosa",
+                    "Has comprado la entrada con ID: " + entrada.getId(),
+                    pdfBytes,
+                    "entrada_" + entrada.getId() + ".pdf");
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo enviar el email: " + e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "No se pudo enviar el email: " + e.getMessage(), e);
         }
 
         this.tokenDao.deleteByValorNativo(tokenEntrada);
@@ -95,5 +84,28 @@ public class ComprasService {
             resultado.add(map);
         }
         return resultado;
+    }
+
+    public byte[] generarTicketPdf(String entradaId) {
+        Entrada entrada = this.entradaDao.findById(Long.parseLong(entradaId))
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada: " + entradaId));
+        return pdfService.crearPdfEntrada(entrada);
+    }
+
+    public byte[] generarTicketsZip(List<String> entradaIds) {
+        try {
+            Map<String, byte[]> archivosParaZip = new HashMap<>();
+            for (String id : entradaIds) {
+                this.entradaDao.findById(Long.parseLong(id)).ifPresent(entrada -> {
+                    byte[] pdf = pdfService.crearPdfEntrada(entrada);
+                    archivosParaZip.put("ticket_" + id + ".pdf", pdf);
+                });
+            }
+            return zipService.generarZip(archivosParaZip);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error generando ZIP: " + e.getMessage(), e);
+        }
     }
 }

@@ -3,6 +3,8 @@ package edu.esi.ds.esientradas.model;
 import java.util.ArrayList;
 import java.util.List;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -15,6 +17,9 @@ public class Escenario {
     private Long id;
     private String nombre;
     private String descripcion;
+
+    @Enumerated(EnumType.STRING)
+    private TipoEscenario tipo;
 
     @OneToMany(mappedBy = "escenario") // mappedBy indica que la relación es bidireccional y que el lado propietario es Espectaculo
     private List<Espectaculo> espectaculos = new ArrayList<>(); // para evitar nullpointerexception
@@ -49,5 +54,13 @@ public class Escenario {
 
     public void setEspectaculos(List<Espectaculo> espectaculos) {
         this.espectaculos = espectaculos;
+    }
+
+    public TipoEscenario getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(TipoEscenario tipo) {
+        this.tipo = tipo;
     }
 }

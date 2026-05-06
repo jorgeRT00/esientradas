@@ -12,21 +12,31 @@ import edu.esi.ds.esientradas.model.Estado;
 public interface EntradaDao extends JpaRepository<Entrada, Long> {
 
     List<Entrada> findByEmailComprador(String emailComprador);
+
     List<Entrada> findByEspectaculoId(Long espectaculoId);
+
+    List<Entrada> findByEspectaculoIdAndEstado(Long espectaculoId, Estado estado);
+
     List<Entrada> findByTokenValor(String valor); // consulta SQL: SELECT * FROM entrada WHERE token_reserva = ?
-    @Query(value = "UPDATE Entrada e SET e.estado = :estado WHERE e.id = :entradaId") // Consulta JPQL para actualizar el estado de una entrada
+
+    @Query(value = "SELECT DISTINCT dtype FROM entrada", nativeQuery = true)
+    List<String> obtenerTiposEntrada();
+
+    @Query(value = "UPDATE Entrada e SET e.estado = :estado WHERE e.id = :entradaId") // Consulta JPQL para actualizar
+                                                                                      // el estado de una entrada
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    void updateEstado(@Param("entradaId") Long entradaId, @Param("estado") Estado estado); // Método para actualizar el estado de una entrada
+    void updateEstado(@Param("entradaId") Long entradaId, @Param("estado") Estado estado); // Método para actualizar el
+                                                                                           // estado de una entrada
 
     @Query("""
-        SELECT new edu.esi.ds.esientradas.dto.DtoEntradas(
-            COUNT(e), 
-            SUM(CASE WHEN e.estado = edu.esi.ds.esientradas.model.Estado.DISPONIBLE THEN 1L ELSE 0L END),
-            SUM(CASE WHEN e.estado = edu.esi.ds.esientradas.model.Estado.VENDIDA THEN 1L ELSE 0L END),
-            SUM(CASE WHEN e.estado = edu.esi.ds.esientradas.model.Estado.RESERVADA THEN 1L ELSE 0L END)
-        )
-        FROM Entrada e
-        WHERE e.espectaculo.id = :espectaculoId
-    """)
+                SELECT new edu.esi.ds.esientradas.dto.DtoEntradas(
+                    COUNT(e),
+                    SUM(CASE WHEN e.estado = edu.esi.ds.esientradas.model.Estado.DISPONIBLE THEN 1L ELSE 0L END),
+                    SUM(CASE WHEN e.estado = edu.esi.ds.esientradas.model.Estado.VENDIDA THEN 1L ELSE 0L END),
+                    SUM(CASE WHEN e.estado = edu.esi.ds.esientradas.model.Estado.RESERVADA THEN 1L ELSE 0L END)
+                )
+                FROM Entrada e
+                WHERE e.espectaculo.id = :espectaculoId
+            """)
     DtoEntradas getNumeroEntradasDT(@Param("espectaculoId") Long espectaculoId);
 }
