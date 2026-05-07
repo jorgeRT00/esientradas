@@ -12,6 +12,6 @@ public interface ReservaDao extends JpaRepository<Reserva, Long> {
 
     List<Reserva> findByTokenValor(String tokenValor);
 
-    boolean existByEntrada(Entrada entrada);
+    boolean existsByEntrada(Entrada entrada);
 
 }
