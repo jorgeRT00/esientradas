@@ -5,11 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import jakarta.transaction.Transactional;
-import edu.esi.ds.esientradas.dao.TokenDao;
 import edu.esi.ds.esientradas.dao.EntradaDao;
-import edu.esi.ds.esientradas.model.Token;
+import edu.esi.ds.esientradas.dao.ReservaDao;
 import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.model.Estado;
+import edu.esi.ds.esientradas.model.Reserva;
+
 import java.util.*;
 
 @Service
@@ -19,8 +20,7 @@ public class ComprasService {
     private UsuariosService usuariosService;
 
     @Autowired
-    private TokenDao tokenDao;
-
+    private ReservaDao reservaDao;
     @Autowired
     private EntradaDao entradaDao;
 
@@ -40,34 +40,56 @@ public class ComprasService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token de usuario no valido.");
         }
 
-        Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
-
-        Entrada entrada = token.getEntrada();
-
-        if (entrada.getEstado() == Estado.VENDIDA) {
-            return "Entrada ya vendida anteriormente para el usuario: " + emailUsuario;
+        List<Reserva> reservas = this.reservaDao.findByTokenValor(tokenEntrada);
+        if (reservas == null || reservas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay reservas para ese token.");
         }
 
-        entrada.setEstado(Estado.VENDIDA);
-        entrada.setEmailComprador(emailUsuario);
-        this.entradaDao.save(entrada);
+        List<Entrada> entradasCompradas = new ArrayList<>();
+        for (Reserva r : reservas) {
+            Entrada entrada = r.getEntrada();
+            if (entrada.getEstado() == Estado.VENDIDA) {
+                continue; // Omitir entradas ya vendidas
+            }   
+            entrada.setEstado(Estado.VENDIDA);
+            entrada.setEmailComprador(emailUsuario);
+            this.entradaDao.save(entrada);
+            entradasCompradas.add(entrada);
+        }
+
+        if (entradasCompradas.isEmpty()) {
+            return "Las entradas ya estaban vendidas.";
+        }      
 
         try {
-            byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
 
-            emailService.sendEmail(
-                    emailUsuario,
-                    "Compra de entrada exitosa",
-                    "Has comprado la entrada con ID: " + entrada.getId(),
-                    pdfBytes,
-                    "entrada_" + entrada.getId() + ".pdf");
+            if (entradasCompradas.size() == 1) {
+                Entrada entrada = entradasCompradas.get(0);
+                byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
+
+                emailService.sendEmail(
+                        emailUsuario,
+                        "Compra de entrada exitosa",
+                        "Has comprado la entrada con ID: " + entrada.getId(),
+                        pdfBytes,
+                        "entrada_" + entrada.getId() + ".pdf");
+            } else {
+                Map<String, byte[]> archivosParaZip = new HashMap<>();
+                for (Entrada entrada : entradasCompradas) {
+                    byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
+                    archivosParaZip.put("entrada_" + entrada.getId() + ".pdf", pdfBytes);
+                }
+                byte[] zipBytes = zipService.generarZip(archivosParaZip);
+                emailService.sendEmail(
+                        emailUsuario,
+                        "Compra de entradas exitosa",
+                        "Has comprado " + entradasCompradas.size() + " entradas.",
+                        zipBytes,
+                        "entradas_compradas.zip");
+            }
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "No se pudo enviar el email: " + e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo enviar el email: " + e.getMessage(), e);
         }
-
-        this.tokenDao.deleteByValorNativo(tokenEntrada);
 
         return "Compra realizada con exito para el usuario: " + emailUsuario;
     }
