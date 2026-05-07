@@ -18,7 +18,7 @@ public class ReservasController {
     private ReservasService reservasService;
 
     @PutMapping ("/reservar")
-    public String reservar(HttpSession session, @RequestParam Long entradaId) {
-        return this.reservasService.reservar(entradaId, session.getId()); // se llama al servicio para reservar la entrada y se devuelve el precio total de las entradas reservadas
+    public String reservar(HttpSession session, @RequestParam Long entradaId, @RequestParam(required = false) String tokenReservaEntrada) {
+        return this.reservasService.reservar(entradaId, tokenReservaEntrada, session.getId()); // se llama al servicio para reservar la entrada y se devuelve el precio total de las entradas reservadas
     }
 }
