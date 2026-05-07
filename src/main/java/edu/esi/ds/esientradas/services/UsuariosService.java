@@ -18,7 +18,7 @@ public class UsuariosService {
     
     public String checkToken(String userToken) {
         
-        String endpoint = "http://localhost:8081/external/checkToken/";
+        String endpoint = "http://localhost:8081/external/checkToken/" + userToken;
         RestTemplate rest = new RestTemplate();
 
         // OWASP A01 - Control de acceso:
