@@ -48,8 +48,8 @@ public class ComprasController {
     }
 
     @GetMapping("/ticket/zip")
-    public ResponseEntity<byte[]> descargarTicketsZip(@RequestParam List<String> ids) {
-        byte[] zipContents = this.comprasService.generarTicketsZip(ids);
+    public ResponseEntity<byte[]> descargarTicketsZip(@RequestParam String emailUsuario) {
+        byte[] zipContents = this.comprasService.generarZipMisEntradas(emailUsuario);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("application/zip"));

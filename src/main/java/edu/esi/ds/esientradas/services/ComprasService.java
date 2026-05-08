@@ -10,7 +10,6 @@ import edu.esi.ds.esientradas.dao.ReservaDao;
 import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.model.Estado;
 import edu.esi.ds.esientradas.model.Reserva;
-
 import java.util.*;
 
 @Service
@@ -50,7 +49,7 @@ public class ComprasService {
             Entrada entrada = r.getEntrada();
             if (entrada.getEstado() == Estado.VENDIDA) {
                 continue; // Omitir entradas ya vendidas
-            }   
+            }
             entrada.setEstado(Estado.VENDIDA);
             entrada.setEmailComprador(emailUsuario);
             this.entradaDao.save(entrada);
@@ -59,39 +58,25 @@ public class ComprasService {
 
         if (entradasCompradas.isEmpty()) {
             return "Las entradas ya estaban vendidas.";
-        }      
-
-        try {
-
-            if (entradasCompradas.size() == 1) {
-                Entrada entrada = entradasCompradas.get(0);
-                byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
-
-                emailService.sendEmail(
-                        emailUsuario,
-                        "Compra de entrada exitosa",
-                        "Has comprado la entrada con ID: " + entrada.getId(),
-                        pdfBytes,
-                        "entrada_" + entrada.getId() + ".pdf");
-            } else {
-                Map<String, byte[]> archivosParaZip = new HashMap<>();
-                for (Entrada entrada : entradasCompradas) {
-                    byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
-                    archivosParaZip.put("entrada_" + entrada.getId() + ".pdf", pdfBytes);
-                }
-                byte[] zipBytes = zipService.generarZip(archivosParaZip);
-                emailService.sendEmail(
-                        emailUsuario,
-                        "Compra de entradas exitosa",
-                        "Has comprado " + entradasCompradas.size() + " entradas.",
-                        zipBytes,
-                        "entradas_compradas.zip");
-            }
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo enviar el email: " + e.getMessage(), e);
         }
 
+        enviarEmailCompra(emailUsuario, entradasCompradas);
+
         return "Compra realizada con exito para el usuario: " + emailUsuario;
+    }
+
+    private void enviarEmailCompra(String emailUsuario, List<Entrada> entradas) {
+        try {
+            byte[] pdfBytes = pdfService.crearPdfEntrada(entradas);
+            emailService.sendEmail(
+                    emailUsuario,
+                    "Compra de entradas exitosa",
+                    "Has comprado " + entradas.size() + " entrada(s). Adjuntamos tu(s) ticket(s).",
+                    pdfBytes,
+                    "entradas.pdf");
+        } catch (Exception e) {
+            System.err.println("[ERROR] No se pudo enviar el email a " + emailUsuario + ": " + e.getMessage());
+        }
     }
 
     public List<Map<String, Object>> misEntradas(String emailUsuario) {
@@ -112,19 +97,18 @@ public class ComprasService {
         Entrada entrada = this.entradaDao.findById(Long.parseLong(entradaId))
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada: " + entradaId));
-        return pdfService.crearPdfEntrada(entrada);
+        return pdfService.crearPdfEntrada(List.of(entrada));
     }
 
-    public byte[] generarTicketsZip(List<String> entradaIds) {
+    public byte[] generarZipMisEntradas(String emailUsuario) {
         try {
-            Map<String, byte[]> archivosParaZip = new HashMap<>();
-            for (String id : entradaIds) {
-                this.entradaDao.findById(Long.parseLong(id)).ifPresent(entrada -> {
-                    byte[] pdf = pdfService.crearPdfEntrada(entrada);
-                    archivosParaZip.put("ticket_" + id + ".pdf", pdf);
-                });
+            List<Entrada> entradas = this.entradaDao.findByEmailComprador(emailUsuario);
+            Map<String, byte[]> archivos = new HashMap<>();
+            for (Entrada entrada : entradas) {
+                byte[] pdf = pdfService.crearPdfEntrada(List.of(entrada));
+                archivos.put("entrada_" + entrada.getId() + ".pdf", pdf);
             }
-            return zipService.generarZip(archivosParaZip);
+            return zipService.generarZip(archivos);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error generando ZIP: " + e.getMessage(), e);

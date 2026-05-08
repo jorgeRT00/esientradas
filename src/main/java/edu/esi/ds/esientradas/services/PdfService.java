@@ -12,23 +12,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 @Service
 public class PdfService {
 
-    public byte[] crearPdfEntrada(Entrada entrada) {
+    public byte[] crearPdfEntrada(List<Entrada> entradas) {
         try {
-            Espectaculo espectaculo = entrada.getEspectaculo();
+
             ByteArrayOutputStream pdfBytes = new ByteArrayOutputStream();
             PdfWriter writer = new PdfWriter(pdfBytes);
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document document = new Document(pdfDoc);
             document.add(new Paragraph("ENTRADA ESIentradas"));
-            document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
-            document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
-            document.add(new Paragraph("ID Entrada: " + entrada.getId()));
-            document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
-            document.add(new Paragraph(obtenerDescripcionUbicacion(entrada)));
+            document.add(new Paragraph(" "));
+            for (Entrada entrada : entradas) {
+                Espectaculo espectaculo = entrada.getEspectaculo();
+                document.add(new Paragraph("-------------------------------"));
+                document.add(new Paragraph("Artista: " + espectaculo.getArtista()));
+                document.add(new Paragraph("Fecha: " + espectaculo.getFecha().toString()));
+                document.add(new Paragraph("ID Entrada: " + entrada.getId()));
+                document.add(new Paragraph("Precio: " + (entrada.getPrecio() / 100.0) + " euros"));
+                document.add(new Paragraph(obtenerDescripcionUbicacion(entrada)));
+                document.add(new Paragraph(" "));
+            }
             document.close();
             return pdfBytes.toByteArray();
         } catch (Exception e) {
