@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import edu.esi.ds.esientradas.services.EscenariosService;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/escenarios")
@@ -16,7 +17,7 @@ public class EscenarioController {
     @Autowired
     private EscenariosService escenariosService;
 
-    @RequestMapping("/insertar")
+    @PostMapping("/insertar")
     public void insertarEscenario(@RequestBody Escenario escenario) {
         if (escenario.getNombre() == null || escenario.getNombre().isEmpty() || escenario.getDescripcion() == null
                 || escenario.getDescripcion().isEmpty()) {
