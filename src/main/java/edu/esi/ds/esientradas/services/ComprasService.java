@@ -4,28 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfWriter;
-import com.itextpdf.layout.element.Paragraph;
-import com.itextpdf.layout.Document;
 import jakarta.transaction.Transactional;
-import edu.esi.ds.esientradas.dao.TokenDao;
 import edu.esi.ds.esientradas.dao.EntradaDao;
-import edu.esi.ds.esientradas.model.Token;
+import edu.esi.ds.esientradas.dao.ReservaDao;
 import edu.esi.ds.esientradas.model.Entrada;
-import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Estado;
-import java.io.ByteArrayOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import edu.esi.ds.esientradas.model.Reserva;
 import java.util.*;
 
 @Service
 public class ComprasService {
 
     @Autowired
-    private TokenDao tokenDao;
+    private UsuariosService usuariosService;
 
+    @Autowired
+    private ReservaDao reservaDao;
     @Autowired
     private EntradaDao entradaDao;
 
@@ -38,10 +32,6 @@ public class ComprasService {
     @Autowired
     private ZipService zipService;
 
-    @Autowired
-    private UsuariosService usuariosService;
-
-
     @Transactional
     public String comprar(String tokenEntrada, String tokenUsuario) {
         String emailUsuario = this.usuariosService.checkToken(tokenUsuario);
@@ -49,35 +39,44 @@ public class ComprasService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token de usuario no valido.");
         }
 
-        Token token = this.tokenDao.findById(tokenEntrada).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Token de entrada no encontrado."));
-
-        Entrada entrada = token.getEntrada();
-        if (entrada.getEstado() == Estado.VENDIDA) {
-            return "Entrada ya vendida anteriormente para el usuario: " + emailUsuario;
+        List<Reserva> reservas = this.reservaDao.findByTokenValor(tokenEntrada);
+        if (reservas == null || reservas.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No hay reservas para ese token.");
         }
 
-        entrada.setEstado(Estado.VENDIDA);
-        entrada.setEmailComprador(emailUsuario);
-        this.entradaDao.save(entrada);
-
-        // Delegamos la generación del PDF a un servicio específico para mantener el código limpio
-        byte[] pdfBytes = pdfService.crearPdfEntrada(entrada);
-
-        try {
-            emailService.sendEmail(
-                emailUsuario, "Compra de entrada exitosa",
-                "Has comprado la entrada con ID: " + entrada.getId(),
-                pdfBytes,
-                "entrada_" + entrada.getId() + ".pdf"
-            );
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo enviar el email: " + e.getMessage(), e);
+        List<Entrada> entradasCompradas = new ArrayList<>();
+        for (Reserva r : reservas) {
+            Entrada entrada = r.getEntrada();
+            if (entrada.getEstado() == Estado.VENDIDA) {
+                continue; // Omitir entradas ya vendidas
+            }
+            entrada.setEstado(Estado.VENDIDA);
+            entrada.setEmailComprador(emailUsuario);
+            this.entradaDao.save(entrada);
+            entradasCompradas.add(entrada);
         }
 
-        this.tokenDao.deleteByValorNativo(tokenEntrada);
+        if (entradasCompradas.isEmpty()) {
+            return "Las entradas ya estaban vendidas.";
+        }
+
+        enviarEmailCompra(emailUsuario, entradasCompradas);
 
         return "Compra realizada con exito para el usuario: " + emailUsuario;
+    }
+
+    private void enviarEmailCompra(String emailUsuario, List<Entrada> entradas) {
+        try {
+            byte[] pdfBytes = pdfService.crearPdfEntrada(entradas);
+            emailService.sendEmail(
+                    emailUsuario,
+                    "Compra de entradas exitosa",
+                    "Has comprado " + entradas.size() + " entrada(s). Adjuntamos tu(s) ticket(s).",
+                    pdfBytes,
+                    "entradas.pdf");
+        } catch (Exception e) {
+            System.err.println("[ERROR] No se pudo enviar el email a " + emailUsuario + ": " + e.getMessage());
+        }
     }
 
     public List<Map<String, Object>> misEntradas(String emailUsuario) {
@@ -94,34 +93,25 @@ public class ComprasService {
         return resultado;
     }
 
-    /**
-     * Ahora este método es un "coordinador": pide PDFs y se los pasa al ZipService.
-     */
-    public byte[] generarTicketsZip(List<String> entradaIds) {
-        Map<String, byte[]> archivosParaZip = new HashMap<>();
-        
-        for (String id : entradaIds) {
-            this.entradaDao.findById(Long.parseLong(id)).ifPresent(entrada -> {
-                // Pedimos el PDF al especialista
-                byte[] pdf = pdfService.crearPdfEntrada(entrada);
-                archivosParaZip.put("ticket_" + id + ".pdf", pdf);
-            });
-        }
-
-        try {
-            // Pasamos el mapa de archivos al ZipService
-            return zipService.generarZip(archivosParaZip);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al empaquetar el ZIP", e);
-        }
+    public byte[] generarTicketPdf(String entradaId) {
+        Entrada entrada = this.entradaDao.findById(Long.parseLong(entradaId))
+                .orElseThrow(
+                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada: " + entradaId));
+        return pdfService.crearPdfEntrada(List.of(entrada));
     }
 
-    public byte[] generarTicketPdf(String id) {
-        // 1. Buscamos la entrada en la BD (convertimos el String a Long)
-        Entrada entrada = this.entradaDao.findById(Long.parseLong(id))
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entrada no encontrada"));
-            
-        // 2. Le pasamos el objeto completo al especialista en PDFs
-        return pdfService.crearPdfEntrada(entrada);
+    public byte[] generarZipMisEntradas(String emailUsuario) {
+        try {
+            List<Entrada> entradas = this.entradaDao.findByEmailComprador(emailUsuario);
+            Map<String, byte[]> archivos = new HashMap<>();
+            for (Entrada entrada : entradas) {
+                byte[] pdf = pdfService.crearPdfEntrada(List.of(entrada));
+                archivos.put("entrada_" + entrada.getId() + ".pdf", pdf);
+            }
+            return zipService.generarZip(archivos);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error generando ZIP: " + e.getMessage(), e);
+        }
     }
 }

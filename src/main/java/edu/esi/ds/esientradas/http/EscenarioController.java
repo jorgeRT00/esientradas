@@ -1,6 +1,7 @@
 package edu.esi.ds.esientradas.http;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import edu.esi.ds.esientradas.model.Escenario;
@@ -16,7 +17,7 @@ public class EscenarioController {
     @Autowired
     private EscenariosService escenariosService;
 
-    @RequestMapping("/insertar")
+    @PostMapping("/insertar")
     public void insertarEscenario(@RequestBody Escenario escenario) {
         if (escenario.getNombre() == null || escenario.getNombre().isEmpty() || escenario.getDescripcion() == null
                 || escenario.getDescripcion().isEmpty()) {

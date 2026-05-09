@@ -2,9 +2,9 @@ package edu.esi.ds.esientradas.http;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpHeaders; // ✓ CORREGIDO: De Spring, no de Stripe
-import org.springframework.http.MediaType;   // ✓ AGREGADO
-import org.springframework.http.HttpStatus;  // ✓ AGREGADO
+import org.springframework.http.HttpHeaders; 
+import org.springframework.http.MediaType; 
+import org.springframework.http.HttpStatus;  
 import org.springframework.web.bind.annotation.*; // ✓ Simplifica los imports de las anotaciones
 
 import edu.esi.ds.esientradas.services.ComprasService;
@@ -51,8 +51,8 @@ public class ComprasController {
     }   
 
     @GetMapping("/ticket/zip")
-    public ResponseEntity<byte[]> descargarTicketsZip(@RequestParam List<String> ids) {
-        byte[] zipContents = this.comprasService.generarTicketsZip(ids);
+    public ResponseEntity<byte[]> descargarTicketsZip(@RequestParam String emailUsuario) {
+        byte[] zipContents = this.comprasService.generarZipMisEntradas(emailUsuario);;
         
         HttpHeaders headers = new HttpHeaders();
         // Indicamos que el contenido es un archivo ZIP

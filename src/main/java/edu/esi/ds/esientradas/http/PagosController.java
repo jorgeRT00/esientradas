@@ -11,6 +11,7 @@ import edu.esi.ds.esientradas.services.PagosService;
 import edu.esi.ds.esientradas.services.ReservasService;
 import edu.esi.ds.esientradas.services.ComprasService;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/pagos")
@@ -21,25 +22,24 @@ public class PagosController {
     private PagosService pagosService;
 
     @Autowired
-    private ComprasService comprasService; // Inyectamos el servicio de compras para delegar la lógica de marcar la entrada como vendida
+    private ComprasService comprasService; // Delegamos la compra final a este servicio
 
     @Autowired
     private ReservasService reservasService; // Inyectamos el servicio que maneja las reservas
 
     @PostMapping("/prepararPago") // Endpoint para crear un intento de pago
-    public Map<String, String> prepararPago(@RequestBody Map<String, String> infoPeticionMap) { // Recibimos los datos de la peticion de la entrada a comprar
-        
+    public Map<String, String> prepararPago(@RequestBody Map<String, String> infoPeticionMap) { // Recibimos los datos
+                                                                                                // de la peticion de la
+                                                                                                // entrada a comprar
+
         // 1. Extraemos el token de reserva de entrada que nos manda el Frontend
         String tokenReservaEntrada = infoPeticionMap.get("tokenReservaEntrada");
         Long centimos = this.reservasService.calcularTotalPorToken(tokenReservaEntrada);
-        
+
         try {
-
-            String result = this.pagosService.prepararPago(centimos, tokenReservaEntrada); 
+            String result = this.pagosService.prepararPago(centimos, tokenReservaEntrada);
             return Map.of("clientSecret", result);
-
         } catch (Exception e) {
-            // Si Stripe falla (por ejemplo, clave incorrecta), devolvemos el error
             e.printStackTrace();
             return Map.of("error", e.getMessage());
         }
@@ -53,14 +53,13 @@ public class PagosController {
         try {
             String tokenReserva = this.pagosService.confirmarPago(paymentIntentId);
             String resultado = this.comprasService.comprar(tokenReserva, tokenUsuario);
-        
             return Map.of("result", resultado);
-        
         } catch (ResponseStatusException e) {
-            return Map.of("error", e.getReason() != null ? e.getReason() : e.getMessage());
+            throw e; // Re-lanzamos la excepción para que Spring maneje el error con el código HTTP
+                     // adecuado
         } catch (Exception e) {
             e.printStackTrace();
-            return Map.of("error", "Error inesperado al confirmar el pago");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al confirmar el pago");
         }
     }
 }

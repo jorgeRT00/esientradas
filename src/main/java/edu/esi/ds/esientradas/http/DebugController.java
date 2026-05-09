@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Profile;
 import edu.esi.ds.esientradas.dao.EntradaDao;
 import edu.esi.ds.esientradas.model.Entrada;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/debug")
+@Profile("development") 
 public class DebugController {
 
     @Autowired

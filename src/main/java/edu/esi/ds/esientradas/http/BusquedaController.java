@@ -16,12 +16,11 @@ import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.services.BusquedaService;
 import java.util.List;
 import edu.esi.ds.esientradas.model.Espectaculo;
-import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.dto.EntradasYEscenarioDTO;
 
 @RestController
 @RequestMapping("/busqueda")
-@CrossOrigin(origins = "http://localhost:4200") // Permitir solicitudes desde cualquier origen (útil para desarrollo)
+@CrossOrigin(origins = "http://localhost:4200") 
 public class BusquedaController {
 
     @Autowired
@@ -100,11 +99,6 @@ public class BusquedaController {
     public List<Escenario> getEscenarios() {
         // aqui se haria la logica para obtener los escenarios de la base de datos
         return this.service.getEscenarios(); // se llama al servicio para obtener los escenarios
-    }
-
-    @GetMapping("/saludar/{nombre}")
-    public String saludar(@PathVariable String nombre, @RequestParam String apellido) {
-        return "Hola, " + nombre + " " + apellido + ", bienvenido a Esientradas!"; // http://localhost:8080/busqueda/saludar?nombre=Jorge&apellido=Rodriguez
     }
 
     @GetMapping("/getNumeroEntradas/{espectaculoId}")
