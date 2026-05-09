@@ -90,11 +90,6 @@ public class BusquedaController {
         return this.service.getEscenarios();
     }
 
-    @GetMapping("/saludar/{nombre}")
-    public String saludar(@PathVariable String nombre, @RequestParam String apellido) {
-        return "Hola, " + nombre + " " + apellido + ", bienvenido a Esientradas!";
-    }
-
     @GetMapping("/getNumeroEntradas/{espectaculoId}")
     public Integer getNumeroEntradas(@PathVariable Long espectaculoId) {
         return this.service.getNumeroEntradas(espectaculoId);
