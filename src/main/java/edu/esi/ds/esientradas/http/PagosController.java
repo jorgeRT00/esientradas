@@ -11,6 +11,7 @@ import edu.esi.ds.esientradas.services.PagosService;
 import edu.esi.ds.esientradas.services.ReservasService;
 import edu.esi.ds.esientradas.services.ComprasService;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 
 @RestController
 @RequestMapping("/pagos")
@@ -54,10 +55,11 @@ public class PagosController {
             String resultado = this.comprasService.comprar(tokenReserva, tokenUsuario);
             return Map.of("result", resultado);
         } catch (ResponseStatusException e) {
-            return Map.of("error", e.getReason() != null ? e.getReason() : e.getMessage());
+            throw e; // Re-lanzamos la excepción para que Spring maneje el error con el código HTTP
+                     // adecuado
         } catch (Exception e) {
             e.printStackTrace();
-            return Map.of("error", "Error inesperado al confirmar el pago");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al confirmar el pago");
         }
     }
 }
