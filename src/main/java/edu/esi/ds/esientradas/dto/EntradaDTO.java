@@ -13,24 +13,21 @@ public class EntradaDTO {
     private String estado;
     private String emailComprador;
     private String nombreEspectaculo;
-
-    /**
-     * Ubicación formateada dinámicamente:
-     * - BUTACA: { tipo, planta, fila, columna, descripcion }
-     * - ZONA:   { tipo, zona, descripcion }
-     */
     private Map<String, Object> ubicacion;
+    private String tipoEscenario;
 
     public EntradaDTO() {}
 
     public EntradaDTO(Long id, Long precio, String estado, String emailComprador,
-                      String nombreEspectaculo, Map<String, Object> ubicacion) {
+                      String nombreEspectaculo, Map<String, Object> ubicacion, String tipoEscenario) {
         this.id = id;
         this.precio = precio;
         this.estado = estado;
         this.emailComprador = emailComprador;
         this.nombreEspectaculo = nombreEspectaculo;
         this.ubicacion = ubicacion;
+        this.tipoEscenario = tipoEscenario;
+
     }
 
     public Long getId() { return id; }
@@ -50,4 +47,7 @@ public class EntradaDTO {
 
     public Map<String, Object> getUbicacion() { return ubicacion; }
     public void setUbicacion(Map<String, Object> ubicacion) { this.ubicacion = ubicacion; }
+
+    public String getTipoEscenario() { return tipoEscenario; }
+    public void setTipoEscenario(String tipoEscenario) { this.tipoEscenario = tipoEscenario; }
 }
