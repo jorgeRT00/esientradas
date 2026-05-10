@@ -4,6 +4,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+
 import java.util.UUID;
 
 @Entity
@@ -17,6 +19,7 @@ public class Token {
     private Long hora;
     private String sessionId;
 
+    @OneToOne // Relación uno a uno con la entidad Entrada
     @JoinColumn(name = "entrada_id", referencedColumnName = "id") // Especifica la columna de unión
     private Entrada entrada; // Relación con la entidad Entrada
 
