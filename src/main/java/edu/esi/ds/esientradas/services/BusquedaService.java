@@ -7,11 +7,14 @@ import org.springframework.stereotype.Service;
 import edu.esi.ds.esientradas.model.Escenario;
 import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
+import edu.esi.ds.esientradas.model.Estado;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EspectaculoDao;
-import edu.esi.ds.esientradas.dto.EntradaDTO;
-import edu.esi.ds.esientradas.dto.EntradasYEscenarioDTO;
 import edu.esi.ds.esientradas.dao.EntradaDao;
+import edu.esi.ds.esientradas.dto.EntradaDTO;
+import edu.esi.ds.esientradas.dto.EspectaculoDTO;
+import edu.esi.ds.esientradas.dto.EscenarioDTO;
+import edu.esi.ds.esientradas.dto.EstadisticasEspectaculoDTO;
 
 @Service
 public class BusquedaService {
@@ -28,59 +31,74 @@ public class BusquedaService {
     @Autowired
     private UbicacionMapper ubicacionMapper;
 
-    /**
-     * Obtiene solo entradas DISPONIBLES con ubicación formateada (DTOs).
-     */
-    public List<EntradaDTO> getEntradasDisponiblesDTO(Long espectaculoId) {
-        List<Entrada> entradas = this.entradaDao.findByEspectaculoId(espectaculoId);
-        return entradas.stream()
+    // Todas las entradas de un espectáculo como DTOs
+    public List<EntradaDTO> getEntradasDTO(Long espectaculoId) {
+        return entradaDao.findByEspectaculoId(espectaculoId)
+                .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Convierte una Entrada a EntradaDTO con ubicación formateada.
-     */
+    // Solo las entradas DISPONIBLES como DTOs
+    public List<EntradaDTO> getEntradasDisponiblesDTO(Long espectaculoId) {
+        return entradaDao.findByEspectaculoIdAndEstado(espectaculoId, Estado.DISPONIBLE)
+                .stream()
+                .map(this::convertirADTO)
+                .collect(Collectors.toList());
+    }
+
     private EntradaDTO convertirADTO(Entrada entrada) {
+        String tipoEscenario = "DESCONOCIDO";
+        if (entrada.getEspectaculo() != null &&
+                entrada.getEspectaculo().getEscenario() != null &&
+                entrada.getEspectaculo().getEscenario().getTipo() != null) {
+            tipoEscenario = entrada.getEspectaculo().getEscenario().getTipo().name();
+        }
         return new EntradaDTO(
-            entrada.getId(),
-            entrada.getPrecio(),
-            entrada.getEstado().toString(),
-            entrada.getEmailComprador(),
-            entrada.getEspectaculo().getArtista(),
-            ubicacionMapper.mapearUbicacion(entrada)
-        );
+                entrada.getId(),
+                entrada.getPrecio(),
+                entrada.getEstado().toString(),
+                entrada.getEmailComprador(),
+                entrada.getEspectaculo().getArtista(),
+                ubicacionMapper.mapearUbicacion(entrada),
+                tipoEscenario);
     }
 
     public List<Escenario> getEscenarios() {
-        return this.escenarioDao.findAll();
+        return escenarioDao.findAll();
     }
 
-    public List<Espectaculo> getEspectaculos(String artista) {
-        if (artista == null || artista.isBlank()) {
-            return this.espectaculoDao.findAll();
+    public List<EspectaculoDTO> getEspectaculos(String artista) {
+        List<Espectaculo> lista = (artista == null || artista.isBlank())
+                ? espectaculoDao.findAll()
+                : espectaculoDao.findByArtistaContainingIgnoreCase(artista.trim());
+        return lista.stream().map(this::convertirEspectaculoADto).collect(Collectors.toList());
+    }
+
+    public List<EspectaculoDTO> getEspectaculos(Long escenarioId) {
+        return espectaculoDao.findByEscenarioId(escenarioId)
+                .stream()
+                .map(this::convertirEspectaculoADto)
+                .collect(Collectors.toList());
+    }
+
+    private EspectaculoDTO convertirEspectaculoADto(Espectaculo e) {
+        EspectaculoDTO dto = new EspectaculoDTO();
+        dto.setId(e.getId());
+        dto.setArtista(e.getArtista());
+        dto.setFecha(e.getFecha());
+        dto.setFechaAperturaTaquilla(e.getFechaAperturaTaquilla());
+        if (e.getEscenario() != null) {
+            String nombre = e.getEscenario().getNombre() != null ? e.getEscenario().getNombre() : "Desconocido";
+            String tipo = e.getEscenario().getTipo() != null ? e.getEscenario().getTipo().name() : "DESCONOCIDO";
+            dto.setEscenario(new EscenarioDTO(nombre, tipo));
+        } else {
+            dto.setEscenario(new EscenarioDTO("Desconocido", "DESCONOCIDO"));
         }
-        return this.espectaculoDao.findByArtistaContainingIgnoreCase(artista.trim());
+        return dto;
     }
 
-    public List<Espectaculo> getEspectaculos(Long escenarioId) {
-        return this.espectaculoDao.findByEscenarioId(escenarioId);
-    }
-
-    
-    // Obtiene las entradas disponibles junto con el tipo de escenario del espectáculo.
-    // Usado para que el frontend sepa si mostrar interfaz de ZONAS o BUTACAS.
-     
-    public EntradasYEscenarioDTO getEntradasDisponiblesConEscenario(Long espectaculoId) {
-        Espectaculo espectaculo = this.espectaculoDao.findById(espectaculoId)
-            .orElseThrow(() -> new IllegalArgumentException("Espectáculo no encontrado: " + espectaculoId));
-
-        String tipoEscenario = "DESCONOCIDO";
-        if (espectaculo.getEscenario() != null && espectaculo.getEscenario().getTipo() != null) {
-            tipoEscenario = espectaculo.getEscenario().getTipo().name();
-        }
-
-        List<EntradaDTO> entradas = this.getEntradasDisponiblesDTO(espectaculoId);
-        return new EntradasYEscenarioDTO(tipoEscenario, entradas);
+    public EstadisticasEspectaculoDTO getNumeroEntradasDto(Long espectaculoId) {
+        return entradaDao.getNumeroEntradasDT(espectaculoId);
     }
 }
