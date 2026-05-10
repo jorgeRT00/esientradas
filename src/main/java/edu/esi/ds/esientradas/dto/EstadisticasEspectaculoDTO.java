@@ -1,13 +1,13 @@
 package edu.esi.ds.esientradas.dto;
 
-public class DtoEntradas {
+public class EstadisticasEspectaculoDTO {
     private Integer totales;
     private Integer reservadas;
     private Integer libres;
     private Integer vendidas;
 
     // Añade este constructor para que la Query funcione
-    public DtoEntradas(Long totales, Long libres, Long vendidas, Long reservadas) {
+    public EstadisticasEspectaculoDTO(Long totales, Long libres, Long vendidas, Long reservadas) {
         this.totales = totales != null ? totales.intValue() : 0;
         this.libres = libres != null ? libres.intValue() : 0;
         this.vendidas = vendidas != null ? vendidas.intValue() : 0;
