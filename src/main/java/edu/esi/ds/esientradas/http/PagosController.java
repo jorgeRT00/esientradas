@@ -28,9 +28,7 @@ public class PagosController {
     private ReservasService reservasService; // Inyectamos el servicio que maneja las reservas
 
     @PostMapping("/prepararPago") // Endpoint para crear un intento de pago
-    public Map<String, String> prepararPago(@RequestBody Map<String, String> infoPeticionMap) { // Recibimos los datos
-                                                                                                // de la peticion de la
-                                                                                                // entrada a comprar
+    public Map<String, String> prepararPago(@RequestBody Map<String, String> infoPeticionMap) { // Recibimos los datos de la peticion de la entrada a comprar
 
         // 1. Extraemos el token de reserva de entrada que nos manda el Frontend
         String tokenReservaEntrada = infoPeticionMap.get("tokenReservaEntrada");
@@ -40,8 +38,7 @@ public class PagosController {
             String result = this.pagosService.prepararPago(centimos, tokenReservaEntrada);
             return Map.of("clientSecret", result);
         } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("error", e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Error al preparar el pago");
         }
     }
 
@@ -55,8 +52,7 @@ public class PagosController {
             String resultado = this.comprasService.comprar(tokenReserva, tokenUsuario);
             return Map.of("result", resultado);
         } catch (ResponseStatusException e) {
-            throw e; // Re-lanzamos la excepción para que Spring maneje el error con el código HTTP
-                     // adecuado
+            throw e; // Re-lanzamos la excepción para que Spring maneje el error con el código HTTP adecuado
         } catch (Exception e) {
             e.printStackTrace();
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error al confirmar el pago");

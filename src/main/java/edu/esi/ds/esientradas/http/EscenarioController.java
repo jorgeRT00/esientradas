@@ -24,9 +24,6 @@ public class EscenarioController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre y la descripción no pueden ser nulos");
         }
         this.escenariosService.insertarEscenario(escenario);
-
-        System.out.println(escenario.getNombre());
-        System.err.println(escenario.getDescripcion());
     }
 
 }

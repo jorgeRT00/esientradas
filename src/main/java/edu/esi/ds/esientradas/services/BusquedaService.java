@@ -9,7 +9,6 @@ import edu.esi.ds.esientradas.model.Espectaculo;
 import edu.esi.ds.esientradas.model.Entrada;
 import edu.esi.ds.esientradas.dao.EscenarioDao;
 import edu.esi.ds.esientradas.dao.EspectaculoDao;
-import edu.esi.ds.esientradas.dto.DtoEntradas;
 import edu.esi.ds.esientradas.dto.EntradaDTO;
 import edu.esi.ds.esientradas.dto.EntradasYEscenarioDTO;
 import edu.esi.ds.esientradas.dao.EntradaDao;
@@ -28,20 +27,6 @@ public class BusquedaService {
 
     @Autowired
     private UbicacionMapper ubicacionMapper;
-
-    public List<Entrada> getEntradas(Long espectaculoId) {
-        return this.entradaDao.findByEspectaculoId(espectaculoId);
-    }
-
-    /**
-     * Obtiene las entradas de un espectáculo con ubicación formateada (DTOs).
-     */
-    public List<EntradaDTO> getEntradasDTO(Long espectaculoId) {
-        List<Entrada> entradas = this.entradaDao.findByEspectaculoId(espectaculoId);
-        return entradas.stream()
-                .map(this::convertirADTO)
-                .collect(Collectors.toList());
-    }
 
     /**
      * Obtiene solo entradas DISPONIBLES con ubicación formateada (DTOs).
@@ -82,24 +67,10 @@ public class BusquedaService {
         return this.espectaculoDao.findByEscenarioId(escenarioId);
     }
 
-    public DtoEntradas getNumeroEntradasDto(Long espectaculoId) {
-        return this.entradaDao.getNumeroEntradasDT(espectaculoId);
-    }
-
-    public Integer getNumeroEntradas(Long espectaculoId) {
-        DtoEntradas dto = this.entradaDao.getNumeroEntradasDT(espectaculoId);
-        return dto.getTotales();
-    }
-
-    public Integer getEntradasLibres(Long espectaculoId) {
-        DtoEntradas dto = this.entradaDao.getNumeroEntradasDT(espectaculoId);
-        return dto.getLibres();
-    }
-
-    /**
-     * Obtiene las entradas disponibles junto con el tipo de escenario del espectáculo.
-     * Usado para que el frontend sepa si mostrar interfaz de ZONAS o BUTACAS.
-     */
+    
+    // Obtiene las entradas disponibles junto con el tipo de escenario del espectáculo.
+    // Usado para que el frontend sepa si mostrar interfaz de ZONAS o BUTACAS.
+     
     public EntradasYEscenarioDTO getEntradasDisponiblesConEscenario(Long espectaculoId) {
         Espectaculo espectaculo = this.espectaculoDao.findById(espectaculoId)
             .orElseThrow(() -> new IllegalArgumentException("Espectáculo no encontrado: " + espectaculoId));

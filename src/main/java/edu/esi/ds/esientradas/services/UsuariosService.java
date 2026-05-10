@@ -15,12 +15,12 @@ import org.springframework.http.HttpMethod;
 public class UsuariosService {
 
     private static final String INTERNAL_SECRET = "secreto-esi-interno-2025";
-    
+    private final RestTemplate rest = new RestTemplate();
+
     public String checkToken(String userToken) {
         
         String endpoint = "http://localhost:8081/external/checkToken/" + userToken;
-        RestTemplate rest = new RestTemplate();
-
+        
         // OWASP A01 - Control de acceso:
         // Se envia la cabecera secreta para que esiusuarios sepa que la peticion
         // viene de esientradas y no de un cliente externo.
